@@ -27,6 +27,9 @@ export default defineConfig({
     strictPort: true,
   },
   plugins: [react(), tailwindcss()],
+  define: {
+    __APP_UPDATED__: JSON.stringify(new Date().toISOString()),
+  },
   resolve: {
     alias: {
       "@": path.resolve(root, "src"),

@@ -508,7 +508,10 @@ export function KaavastoApp() {
                 <p className="font-mono text-xs tracking-widest text-accent uppercase">
                   {programming ? t(locale, "Ohjelmoinnin esimerkit") : t(locale, "Insinöörin kaavakirja")}
                 </p>
-                <h1 className="text-2xl leading-tight font-semibold">Kaavasto</h1>
+                <h1 className="flex flex-wrap items-baseline gap-x-2 text-2xl leading-tight font-semibold">
+                  Kaavasto
+                  <UpdatedStamp locale={locale} />
+                </h1>
               </div>
             </div>
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
@@ -920,6 +923,38 @@ export function KaavastoApp() {
     </div>
     </LocaleContext.Provider>
   );
+}
+
+function UpdatedStamp({ locale }: { locale: Locale }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+  return <span className="text-xs font-normal text-muted">{updatedAgo(locale, __APP_UPDATED__, now)}</span>;
+}
+
+function updatedAgo(locale: Locale, iso: string, now: number): string {
+  const then = Date.parse(iso);
+  const minutes = Number.isFinite(then) ? Math.max(0, Math.floor((now - then) / 60000)) : 0;
+  if (locale === "en") {
+    if (minutes < 1) return "Updated just now";
+    if (minutes < 60) return `Updated ${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours === 1 ? "Updated 1 hour ago" : `Updated ${hours} hours ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return days === 1 ? "Updated 1 day ago" : `Updated ${days} days ago`;
+    const months = Math.floor(days / 30);
+    return months === 1 ? "Updated 1 month ago" : `Updated ${months} months ago`;
+  }
+  if (minutes < 1) return "Muokattu juuri nyt";
+  if (minutes < 60) return `Muokattu ${minutes} min sitten`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Muokattu ${hours} h sitten`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `Muokattu ${days} pv sitten`;
+  const months = Math.floor(days / 30);
+  return `Muokattu ${months} kk sitten`;
 }
 
 function Library({

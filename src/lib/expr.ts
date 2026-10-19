@@ -565,8 +565,159 @@ function evaluateEquation(left: MathNode, right: MathNode, vars: Record<string, 
   const check = at(solved);
   if (!check.ok) return check;
   if (check.node.t !== "num" || Math.abs(check.node.n) > 1e-6 * (1 + Math.abs(solved))) return { ok: false, error: "none" };
-  steps.push({ t: "eq", left: { t: "sym", name: unknown }, right: { t: "num", n: solved } });
+  for (const step of explainEquation(knownLeft, knownRight, unknown, angle, solved)) {
+    if (!sameExpr(step, steps[steps.length - 1])) steps.push(step);
+  }
+  if (steps.length === 1) steps.push({ t: "eq", left: { t: "sym", name: unknown }, right: { t: "num", n: solved } });
   return { ok: true, value: solved, name: unknown, steps };
+}
+
+function explainEquation(left: MathNode, right: MathNode, name: string, angle: AngleMode, solved: number): MathNode[] {
+  const steps: MathNode[] = [];
+  let current = { left, right };
+  for (let guard = 0; guard < 16; guard += 1) {
+    if (current.left.t === "sym" && current.left.name === name && current.right.t === "num") break;
+    const next =
+      simplifySide(current, angle) ??
+      combineSide(current, name, angle) ??
+      peelSum(current, name) ??
+      peelFactor(current, name) ??
+      moveRight(current, name) ??
+      swapSides(current, name);
+    if (!next) break;
+    current = next;
+    steps.push({ t: "eq", left: current.left, right: current.right });
+  }
+  const last = steps[steps.length - 1];
+  const reached = last?.t === "eq" && last.left.t === "sym" && last.left.name === name && last.right.t === "num" && Math.abs(last.right.n - solved) < 1e-6;
+  if (!reached) return [{ t: "eq", left: { t: "sym", name }, right: { t: "num", n: solved } }];
+  return steps;
+}
+
+function simplifySide(eq: { left: MathNode; right: MathNode }, angle: AngleMode): { left: MathNode; right: MathNode } | null {
+  const left = reduceOnce(eq.left, angle);
+  if (left.ok && left.changed) return { left: left.node, right: eq.right };
+  const right = reduceOnce(eq.right, angle);
+  if (right.ok && right.changed) return { left: eq.left, right: right.node };
+  return null;
+}
+
+function combineSide(eq: { left: MathNode; right: MathNode }, name: string, angle: AngleMode): { left: MathNode; right: MathNode } | null {
+  const left = combineLike(eq.left, name, angle);
+  if (left) return { left, right: eq.right };
+  const right = combineLike(eq.right, name, angle);
+  if (right) return { left: eq.left, right };
+  return null;
+}
+
+function combineLike(node: MathNode, name: string, angle: AngleMode): MathNode | null {
+  if (node.t !== "bin" || (node.op !== "+" && node.op !== "-") || !hasUnknown(node.left, name) || !hasUnknown(node.right, name)) return null;
+  const form = linearForm(node, name, angle);
+  if (!form) return null;
+  const rebuilt = axPlusB(form.a, form.b, name);
+  return sameExpr(rebuilt, node) ? null : rebuilt;
+}
+
+function peelSum(eq: { left: MathNode; right: MathNode }, name: string): { left: MathNode; right: MathNode } | null {
+  const node = eq.left;
+  if (node.t !== "bin" || (node.op !== "+" && node.op !== "-")) return null;
+  const rightHas = hasUnknown(eq.right, name);
+  if (node.op === "+") {
+    if (rightHas && hasUnknown(node.left, name)) return { left: node.right, right: bin("-", eq.right, node.left) };
+    if (rightHas && isConstExpr(node.left, name) && hasUnknown(node.right, name)) return { left: node.left, right: bin("-", eq.right, node.right) };
+    if (!rightHas && hasUnknown(node.left, name) && isConstExpr(node.right, name)) return { left: node.left, right: bin("-", eq.right, node.right) };
+    if (!rightHas && isConstExpr(node.left, name) && hasUnknown(node.right, name)) return { left: node.right, right: bin("-", eq.right, node.left) };
+    return null;
+  }
+  if (!rightHas && hasUnknown(node.left, name) && isConstExpr(node.right, name)) return { left: node.left, right: bin("+", eq.right, node.right) };
+  if (rightHas && hasUnknown(node.left, name) && isConstExpr(node.right, name)) {
+    return { left: { t: "neg", expr: node.right }, right: bin("-", eq.right, node.left) };
+  }
+  return null;
+}
+
+function peelFactor(eq: { left: MathNode; right: MathNode }, name: string): { left: MathNode; right: MathNode } | null {
+  const node = eq.left;
+  if (node.t === "neg" && hasUnknown(node.expr, name)) return { left: node.expr, right: { t: "neg", expr: eq.right } };
+  if (node.t !== "bin") return null;
+  if (node.op === "*" && isConstExpr(node.left, name) && hasUnknown(node.right, name) && !(node.left.t === "num" && node.left.n === 1)) {
+    return { left: node.right, right: bin("/", eq.right, node.left) };
+  }
+  if (node.op === "*" && isConstExpr(node.right, name) && hasUnknown(node.left, name) && !(node.right.t === "num" && node.right.n === 1)) {
+    return { left: node.left, right: bin("/", eq.right, node.right) };
+  }
+  if (node.op === "/" && hasUnknown(node.left, name) && isConstExpr(node.right, name)) {
+    return { left: node.left, right: bin("*", eq.right, node.right) };
+  }
+  return null;
+}
+
+function moveRight(eq: { left: MathNode; right: MathNode }, name: string): { left: MathNode; right: MathNode } | null {
+  const node = eq.right;
+  if (!hasUnknown(node, name) || node.t !== "bin") return null;
+  if (node.op === "-" && hasUnknown(node.left, name) && isConstExpr(node.right, name)) return { left: bin("+", eq.left, node.right), right: node.left };
+  if (node.op === "+" && hasUnknown(node.left, name) && isConstExpr(node.right, name)) return { left: bin("-", eq.left, node.right), right: node.left };
+  if (node.op === "+" && isConstExpr(node.left, name) && hasUnknown(node.right, name)) return { left: bin("-", eq.left, node.left), right: node.right };
+  return null;
+}
+
+function swapSides(eq: { left: MathNode; right: MathNode }, name: string): { left: MathNode; right: MathNode } | null {
+  if (isConstExpr(eq.left, name) && hasUnknown(eq.right, name)) return { left: eq.right, right: eq.left };
+  return null;
+}
+
+function bin(op: "+" | "-" | "*" | "/", left: MathNode, right: MathNode): MathNode {
+  return { t: "bin", op, left, right };
+}
+
+function hasUnknown(node: MathNode, name: string): boolean {
+  if (node.t === "sym") return node.name === name;
+  if (node.t === "neg") return hasUnknown(node.expr, name);
+  if (node.t === "call") return node.args.some((arg) => hasUnknown(arg, name));
+  if (node.t === "num") return false;
+  return hasUnknown(node.left, name) || hasUnknown(node.right, name);
+}
+
+function isConstExpr(node: MathNode, name: string): boolean {
+  return !hasUnknown(node, name);
+}
+
+function linearForm(node: MathNode, name: string, angle: AngleMode): { a: number; b: number } | null {
+  if (node.t === "num") return { a: 0, b: node.n };
+  if (node.t === "sym") return node.name === name ? { a: 1, b: 0 } : null;
+  if (node.t === "neg") {
+    const inner = linearForm(node.expr, name, angle);
+    return inner ? { a: -inner.a, b: -inner.b } : null;
+  }
+  if (node.t === "call") {
+    if (hasUnknown(node, name)) return null;
+    const value = collapse(node, angle);
+    return value.ok && value.node.t === "num" ? { a: 0, b: value.node.n } : null;
+  }
+  if (node.t !== "bin") return null;
+  const left = linearForm(node.left, name, angle);
+  const right = linearForm(node.right, name, angle);
+  if (!left || !right) return null;
+  if (node.op === "+") return { a: left.a + right.a, b: left.b + right.b };
+  if (node.op === "-") return { a: left.a - right.a, b: left.b - right.b };
+  if (node.op === "*") {
+    if (left.a !== 0 && right.a !== 0) return null;
+    return left.a === 0 ? { a: left.b * right.a, b: left.b * right.b } : { a: right.b * left.a, b: right.b * left.b };
+  }
+  if (node.op === "/") {
+    if (right.a !== 0 || right.b === 0) return null;
+    return { a: left.a / right.b, b: left.b / right.b };
+  }
+  return null;
+}
+
+function axPlusB(a: number, b: number, name: string): MathNode {
+  if (Math.abs(a) < 1e-9) return { t: "num", n: tidy(b) };
+  const abs = Math.abs(a);
+  const core: MathNode = abs === 1 ? { t: "sym", name } : { t: "bin", op: "*", left: { t: "num", n: tidy(abs) }, right: { t: "sym", name }, implicit: true };
+  const term: MathNode = a < 0 ? { t: "neg", expr: core } : core;
+  if (Math.abs(b) < 1e-9) return term;
+  return b > 0 ? { t: "bin", op: "+", left: term, right: { t: "num", n: tidy(b) } } : { t: "bin", op: "-", left: term, right: { t: "num", n: tidy(-b) } };
 }
 
 function collectUnknowns(node: MathNode, out: Set<string>) {
