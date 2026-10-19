@@ -498,7 +498,7 @@ export function KaavastoApp() {
 
   return (
     <LocaleContext.Provider value={locale}>
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-line bg-paper">
         <div className={clsx("mx-auto flex flex-col gap-4 px-4 py-4 lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
@@ -915,13 +915,63 @@ export function KaavastoApp() {
         ) : null}
       </div>
 
-      <footer className="mx-auto max-w-6xl px-4 pt-2 pb-10 text-sm text-muted lg:px-8">
+      <footer className={clsx("mx-auto mt-auto w-full px-4 pt-6 pb-14 text-sm text-muted lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
         {programming
           ? t(locale, "Esimerkit ovat tiiviitä muistilistoja. Kielen oma dokumentaatio on virallinen lähde. Haku avautuu näppäimellä /.")
           : t(locale, "Laskurit ovat tarkastus- ja opiskelukäyttöön. Kriittinen mitoitus tarkistetaan alkuperäislähteestä. Haku avautuu näppäimellä /.")}
       </footer>
+      <UpdateLog locale={locale} />
     </div>
     </LocaleContext.Provider>
+  );
+}
+
+const UPDATES: { fi: string; en: string }[] = [
+  { fi: "Yhtälö näyttää välivaiheet.", en: "Equations show the working." },
+  { fi: "Otsikon vieressä näkyy, milloin sivua on muokattu.", en: "The title shows when the page was updated." },
+  { fi: "Tumma teema. Ohjelmoinnin koodi pysyy tummana.", en: "Dark theme. Programming code stays dark." },
+  { fi: "Tallennuksen voi tyhjentää yläpalkista.", en: "Saved data can be cleared from the header." },
+  { fi: "Työtilan voi viedä ja tuoda.", en: "A workspace can be exported and imported." },
+  { fi: "Oma työtila laskuille, muistiinpanoille ja kaavoille.", en: "A workspace for calculations, notes and formulas." },
+];
+
+function UpdateLog({ locale }: { locale: Locale }) {
+  const [open, setOpen] = useState(false);
+  const title = locale === "fi" ? "Päivitykset" : "Updates";
+  useEffect(() => {
+    if (!open) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+  return (
+    <div className="fixed bottom-3 left-3 z-30">
+      {open ? (
+        <section className="mb-2 w-72 max-w-[calc(100vw-1.5rem)] rounded-lg border border-line bg-paper p-3 text-xs leading-relaxed text-muted shadow-sm" aria-label={title}>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-mono text-[10px] tracking-widest uppercase">{title}</h2>
+            <button type="button" onClick={() => setOpen(false)} className="grid size-7 place-items-center rounded-md text-sm" aria-label={locale === "fi" ? "Sulje" : "Close"}>
+              ×
+            </button>
+          </div>
+          <ol className="mt-2 flex max-h-60 flex-col gap-1 overflow-y-auto">
+            {UPDATES.map((item) => (
+              <li key={item.fi}>{locale === "en" ? item.en : item.fi}</li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="h-8 rounded-md border border-line bg-paper px-2 font-mono text-[10px] tracking-widest text-muted uppercase"
+      >
+        {title}
+      </button>
+    </div>
   );
 }
 
