@@ -12,10 +12,16 @@ import {
   Ruler,
   Search,
   Sigma,
+  SquarePen,
   Star,
   Zap,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { BiLogoCPlusPlus } from "react-icons/bi";
+import { RiJavaLine, RiJavascriptLine } from "react-icons/ri";
+import { SiC } from "react-icons/si";
+import { TbBrandPython, TbSql } from "react-icons/tb";
+import type { IconType } from "react-icons";
 import {
   CATEGORIES,
   FORMULAS,
@@ -35,6 +41,8 @@ import {
   ProgrammingLibrary,
   programmingCount,
 } from "@/components/ohjelmointi";
+import { WorkspacePanel } from "@/components/workspace-panel";
+import { createId, loadWorkspaces, saveWorkspaces, type WorkspaceFile } from "@/lib/workspace";
 
 type FilterId = "kaikki" | "suosikit" | CategoryId;
 
@@ -117,6 +125,20 @@ function loadList(key: string): string[] {
   } catch {
     return [];
   }
+}
+
+function LanguageGlyph({ id }: { id: string }) {
+  const icons: Record<string, IconType> = {
+    js: RiJavascriptLine,
+    python: TbBrandPython,
+    cpp: BiLogoCPlusPlus,
+    java: RiJavaLine,
+    c: SiC,
+    sql: TbSql,
+  };
+  const Icon = icons[id];
+  if (!Icon) return <BookOpen className="size-4 shrink-0" aria-hidden="true" />;
+  return <Icon className="size-4 shrink-0" aria-hidden="true" />;
 }
 
 function CategoryGlyph({ id }: { id: FilterId }) {
@@ -209,6 +231,10 @@ export function KaavastoApp() {
   const [drafts, setDrafts] = useState<Record<string, Record<string, string>>>({});
   const [copied, setCopied] = useState(false);
   const [locale, setUiLocale] = useState<Locale>("fi");
+  const [wsFile, setWsFile] = useState<WorkspaceFile>(() => loadWorkspaces());
+  const [wsOpen, setWsOpen] = useState(false);
+  const [catalogHidden, setCatalogHidden] = useState(false);
+  const [wsReady, setWsReady] = useState(false);
   setLocale(locale);
 
   useEffect(() => {
@@ -223,6 +249,8 @@ export function KaavastoApp() {
     setProgLesson(loc.lesson);
     setActiveId(loc.formulaId);
     setReady(true);
+    setWsFile(loadWorkspaces());
+    setWsReady(true);
     function onHash() {
       const next = readLocation();
       setSection(next.section);
@@ -246,10 +274,9 @@ export function KaavastoApp() {
   }, [recent, ready]);
 
   useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem("kaavasto:locale", locale);
-    document.documentElement.lang = locale;
-  }, [locale, ready]);
+    if (!wsReady) return;
+    saveWorkspaces(wsFile);
+  }, [wsFile, wsReady]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -295,12 +322,45 @@ export function KaavastoApp() {
 
   const formula = activeId ? getFormula(activeId) : undefined;
 
-  function openFormula(id: string) {
+  useEffect(() => {
+    if (!ready) return;
+    localStorage.setItem("kaavasto:locale", locale);
+    document.documentElement.lang = locale;
+  }, [locale, ready]);
+
+  function addWorkspaceBlock(block: WorkspaceFile["workspaces"][number]["blocks"][number]) {
+    setWsFile((current) => ({
+      ...current,
+      workspaces: current.workspaces.map((item) => (item.id === current.activeId ? { ...item, blocks: [...item.blocks, block] } : item)),
+    }));
+    if (window.matchMedia("(min-width: 1024px)").matches) setWsOpen(true);
+    window.setTimeout(() => document.getElementById(`ws-block-${block.id}`)?.scrollIntoView({ block: "nearest" }), 40);
+  }
+
+  function addFormulaToWorkspace(id: string) {
+    const picked = getFormula(id);
+    if (!picked) return;
+    const values = { ...picked.seed };
+    for (const field of picked.fields(values)) {
+      if (field.kind !== "select") values[field.id] = "";
+    }
+    addWorkspaceBlock({ id: createId(), kind: "formula", formulaId: id, values, exports: [] });
+  }
+
+  function openFormulaWith(id: string, values: Record<string, string> | null) {
+    if (!getFormula(id)) return;
+    if (values) setDrafts((prev) => ({ ...prev, [id]: { ...values } }));
+    setSection("kaavasto");
     setActiveId(id);
     setCopied(false);
     setRecent((prev) => [id, ...prev.filter((item) => item !== id)].slice(0, 8));
     window.history.replaceState(null, "", `${pathOf()}#${id}`);
+    if (window.matchMedia("(max-width: 1023px)").matches) setWsOpen(false);
     window.scrollTo(0, 0);
+  }
+
+  function openFormula(id: string) {
+    openFormulaWith(id, null);
   }
 
   function closeFormula() {
@@ -396,6 +456,8 @@ export function KaavastoApp() {
   }
 
   const programming = section === "ohjelmointi";
+  const showWorkspace = wsOpen && !programming;
+  const hideCatalog = showWorkspace && catalogHidden;
   const progVisible = programmingCount(progLang, query, progTopic);
   const countLabel = programming
     ? progVisible === lessonCount()
@@ -413,7 +475,7 @@ export function KaavastoApp() {
     <LocaleContext.Provider value={locale}>
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-line bg-paper">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 lg:px-8">
+        <div className={clsx("mx-auto flex flex-col gap-4 px-4 py-4 lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <div className="flex min-w-0 items-center gap-3">
               <span className="grid size-11 shrink-0 place-items-center rounded-md bg-ink font-mono text-xl text-paper">ƒ</span>
@@ -425,6 +487,20 @@ export function KaavastoApp() {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-3">
+              {programming ? null : (
+              <button
+                type="button"
+                aria-pressed={wsOpen}
+                onClick={() => setWsOpen((open) => !open)}
+                className={clsx(
+                  "flex h-11 items-center gap-2 rounded-md border px-3 text-sm font-medium",
+                  wsOpen ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
+                )}
+              >
+                <SquarePen className="size-4" aria-hidden="true" />
+                {t(locale, "Oma työtila")}
+              </button>
+              )}
               <div className="flex rounded-md border border-line bg-bg p-0.5" role="group" aria-label={t(locale, "Kieli")}>
                 {(["fi", "en"] as const).map((code) => (
                   <button
@@ -501,8 +577,8 @@ export function KaavastoApp() {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 lg:flex-row lg:px-8">
-        <nav className="hidden w-60 shrink-0 lg:block" aria-label={programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}>
+      <div className={clsx("mx-auto flex flex-col gap-6 px-4 py-6 lg:flex-row lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
+        <nav className={clsx("hidden w-60 shrink-0 lg:block", hideCatalog && "lg:hidden")} aria-label={programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}>
           <ul className="sticky top-60 flex max-h-[calc(100dvh-16rem)] flex-col gap-1 overflow-y-auto">
             {programming
               ? [{ id: "kaikki", label: "Kaikki", short: "", count: lessonCount() }, ...LANGUAGES.map((language) => ({
@@ -524,10 +600,10 @@ export function KaavastoApp() {
                           selected ? "bg-ink text-paper" : "text-ink hover:bg-paper",
                         )}
                       >
-                        {item.short ? (
-                          <span className={clsx("w-10 shrink-0 font-mono text-xs", selected ? "text-ink-soft" : "text-muted")}>{item.short}</span>
-                        ) : (
+                        {item.id === "kaikki" ? (
                           <BookOpen className={clsx("size-4 shrink-0", selected ? "text-ink-soft" : "text-muted")} aria-hidden="true" />
+                        ) : (
+                          <LanguageGlyph id={item.id} />
                         )}
                         <span className="flex-1">{item.id === "kaikki" ? t(locale, item.label) : item.label}</span>
                         <span className={clsx("font-mono text-xs tabular-nums", selected ? "text-ink-soft" : "text-muted")}>{item.count}</span>
@@ -610,7 +686,7 @@ export function KaavastoApp() {
           </ul>
         </nav>
 
-        <main className="min-w-0 flex-1">
+        <main className={clsx("min-w-0 flex-1", showWorkspace && "hidden w-full lg:block lg:w-96 lg:flex-none", hideCatalog && "lg:hidden")}>
           <div className="mb-4 flex flex-col gap-2 lg:hidden">
             <div className="flex gap-2 overflow-x-auto" aria-label={programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}>
               {programming
@@ -627,7 +703,12 @@ export function KaavastoApp() {
                           selected ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink",
                         )}
                       >
-                        {item.id === "kaikki" ? t(locale, item.label) : item.label}
+                        {item.id === "kaikki" ? t(locale, item.label) : (
+                          <>
+                            <LanguageGlyph id={item.id} />
+                            {item.label}
+                          </>
+                        )}
                       </button>
                     );
                   })
@@ -716,6 +797,18 @@ export function KaavastoApp() {
                 }))
               }
               onCopy={() => void copyResult(formula)}
+              onAddReference={() =>
+                addWorkspaceBlock({ id: createId(), kind: "reference", formulaId: formula.id })
+              }
+              onSaveCalculation={() =>
+                addWorkspaceBlock({
+                  id: createId(),
+                  kind: "formula",
+                  formulaId: formula.id,
+                  values: { ...valuesOf(formula) },
+                  exports: [],
+                })
+              }
               values={valuesOf(formula)}
             />
           ) : (
@@ -724,13 +817,24 @@ export function KaavastoApp() {
               favorites={favorites}
               recent={recent}
               showRecent={query.trim() === "" && filter === "kaikki"}
-              onOpen={openFormula}
+              onOpen={(id) => (wsOpen ? addFormulaToWorkspace(id) : openFormula(id))}
               onToggleFavorite={toggleFavorite}
               onClear={() => setQuery("")}
               query={query}
+              compact={wsOpen}
             />
           )}
         </main>
+        {showWorkspace ? (
+          <WorkspacePanel
+            file={wsFile}
+            onFile={setWsFile}
+            onClose={() => setWsOpen(false)}
+            onOpenFormula={openFormulaWith}
+            catalogHidden={hideCatalog}
+            onToggleCatalog={() => setCatalogHidden((hidden) => !hidden)}
+          />
+        ) : null}
       </div>
 
       <footer className="mx-auto max-w-6xl px-4 pt-2 pb-10 text-sm text-muted lg:px-8">
@@ -752,6 +856,7 @@ function Library({
   onToggleFavorite,
   onClear,
   query,
+  compact,
 }: {
   formulas: Formula[];
   favorites: string[];
@@ -761,6 +866,7 @@ function Library({
   onToggleFavorite: (id: string) => void;
   onClear: () => void;
   query: string;
+  compact?: boolean;
 }) {
   const locale = useContext(LocaleContext);
   const recentFormulas = recent.map((id) => getFormula(id)).filter((item): item is Formula => Boolean(item));
@@ -830,7 +936,7 @@ function Library({
           </span>
           {group.sub}
         </h2>
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className={clsx("grid gap-3", compact ? "grid-cols-1" : "sm:grid-cols-2")}>
           {group.items.map((item) => {
             const favorite = favorites.includes(item.id);
             const name = t(locale, item.name);
@@ -875,6 +981,8 @@ function Worksheet({
   onChange,
   onReset,
   onCopy,
+  onAddReference,
+  onSaveCalculation,
 }: {
   formula: Formula;
   values: Record<string, string>;
@@ -885,6 +993,8 @@ function Worksheet({
   onChange: (id: string, value: string) => void;
   onReset: () => void;
   onCopy: () => void;
+  onAddReference: () => void;
+  onSaveCalculation: () => void;
 }) {
   const locale = useContext(LocaleContext);
   const fields = formula.fields(values);
@@ -918,6 +1028,9 @@ function Worksheet({
         </p>
         <h2 className="text-3xl font-semibold tracking-tight">{t(locale, formula.name)}</h2>
         <p className="rounded-md border border-line bg-paper px-4 py-3 font-mono text-sm break-words">{formula.expression}</p>
+        <button type="button" onClick={onAddReference} className="h-11 self-start rounded-md border border-line bg-paper px-3 text-sm">
+          {t(locale, "Lisää omaan työtilaan")}
+        </button>
         <p className="text-pretty text-muted">{t(locale, formula.blurb)}</p>
       </header>
 
@@ -976,14 +1089,19 @@ function Worksheet({
           <div className="flex items-center justify-between gap-3 border-b border-ink-soft px-4 py-3">
             <h3 className="font-mono text-xs tracking-widest text-ink-soft uppercase">{t(locale, "Tulos")}</h3>
             {result.status === "ok" ? (
-              <button
-                type="button"
-                onClick={onCopy}
-                className="flex h-11 items-center gap-2 rounded-md border border-ink-soft px-3 text-sm text-paper"
-              >
-                {copied ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
-                {copied ? t(locale, "Kopioitu") : t(locale, "Kopioi")}
-              </button>
+              <div className="flex flex-wrap justify-end gap-2">
+                <button type="button" onClick={onSaveCalculation} className="flex h-11 items-center gap-2 rounded-md bg-accent px-3 text-sm font-medium text-accent-ink">
+                  {t(locale, "Tallenna työtilaan")}
+                </button>
+                <button
+                  type="button"
+                  onClick={onCopy}
+                  className="flex h-11 items-center gap-2 rounded-md border border-ink-soft px-3 text-sm text-paper"
+                >
+                  {copied ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
+                  {copied ? t(locale, "Kopioitu") : t(locale, "Kopioi")}
+                </button>
+              </div>
             ) : null}
           </div>
           {result.status === "ok" ? (
