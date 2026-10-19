@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Atom,
   BookOpen,
   Check,
+  Code2,
   Copy,
   Cpu,
   Network,
@@ -25,7 +26,15 @@ import {
   type Formula,
   type FormulaInput,
 } from "@/lib/formulas";
-import { setLocale, subcategoryLabel, t, type Locale } from "@/lib/i18n";
+import { LANGUAGES, TOPICS, getLesson, isTopicId, lessonCount, type TopicId } from "@/lib/code";
+import { SUBCATEGORIES, setLocale, subcategoryLabel, t, type Locale } from "@/lib/i18n";
+import { LocaleContext } from "@/components/locale-context";
+import {
+  languageLessonCount,
+  ProgrammingLesson,
+  ProgrammingLibrary,
+  programmingCount,
+} from "@/components/ohjelmointi";
 
 type FilterId = "kaikki" | "suosikit" | CategoryId;
 
@@ -35,7 +44,68 @@ const FILTERS: { id: FilterId; label: string }[] = [
   ...CATEGORIES,
 ];
 
-const LocaleContext = createContext<Locale>("fi");
+type SectionId = "kaavasto" | "ohjelmointi";
+
+function pathOf(): string {
+  return window.location.pathname + window.location.search;
+}
+
+function languageTopics(lang: string, locale: Locale): { id: TopicId; label: string; count: number }[] {
+  const language = LANGUAGES.find((item) => item.id === lang);
+  if (!language) return [];
+  return (Object.keys(TOPICS) as TopicId[])
+    .map((id) => ({
+      id,
+      label: TOPICS[id][locale],
+      count: language.lessons.filter((lesson) => lesson.topic === id).length,
+    }))
+    .filter((item) => item.count > 0);
+}
+
+function categorySubs(category: string): { id: string; count: number }[] {
+  return SUBCATEGORIES.filter((item) => item.category === category)
+    .map((item) => ({
+      id: item.id,
+      count: FORMULAS.filter((formula) => formula.subcategory === item.id).length,
+    }))
+    .filter((item) => item.count > 0);
+}
+
+function progListHash(lang: string, topic: string | null): string {
+  if (!lang || lang === "kaikki") return "#prog";
+  return topic ? `#prog/${lang}/${topic}` : `#prog/${lang}`;
+}
+
+function readLocation(): {
+  section: SectionId;
+  formulaId: string | null;
+  lang: string;
+  topic: string | null;
+  lesson: string | null;
+} {
+  const raw = window.location.hash.replace(/^#/, "");
+  if (raw === "prog" || raw.startsWith("prog/")) {
+    const rest = raw.startsWith("prog/") ? raw.slice("prog/".length) : "";
+    const [lang, lessonId] = rest.split("/");
+    const languageOk = Boolean(lang && LANGUAGES.some((item) => item.id === lang));
+    const topic = languageOk && lessonId && isTopicId(lessonId) ? lessonId : null;
+    const key = languageOk && lessonId && !topic ? `${lang}/${lessonId}` : null;
+    return {
+      section: "ohjelmointi",
+      formulaId: null,
+      lang: languageOk ? lang : "kaikki",
+      topic,
+      lesson: key && getLesson(key) ? key : null,
+    };
+  }
+  return {
+    section: "kaavasto",
+    formulaId: getFormula(raw) ? raw : null,
+    lang: "kaikki",
+    topic: null,
+    lesson: null,
+  };
+}
 
 function loadList(key: string): string[] {
   try {
@@ -124,9 +194,15 @@ function FieldControl({
 }
 
 export function KaavastoApp() {
+  const initial = typeof window === "undefined" ? null : readLocation();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterId>("kaikki");
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [section, setSection] = useState<SectionId>(initial?.section ?? "kaavasto");
+  const [progLang, setProgLang] = useState(initial?.lang ?? "kaikki");
+  const [progTopic, setProgTopic] = useState<string | null>(initial?.topic ?? null);
+  const [progLesson, setProgLesson] = useState<string | null>(initial?.lesson ?? null);
+  const [subFilter, setSubFilter] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(initial?.formulaId ?? null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
@@ -140,9 +216,23 @@ export function KaavastoApp() {
     setRecent(loadList("kaavasto:recent"));
     const stored = localStorage.getItem("kaavasto:locale");
     if (stored === "en" || stored === "fi") setUiLocale(stored);
-    const id = window.location.hash.replace(/^#/, "");
-    if (getFormula(id)) setActiveId(id);
+    const loc = readLocation();
+    setSection(loc.section);
+    setProgLang(loc.lang);
+    setProgTopic(loc.topic);
+    setProgLesson(loc.lesson);
+    setActiveId(loc.formulaId);
     setReady(true);
+    function onHash() {
+      const next = readLocation();
+      setSection(next.section);
+      setProgLang(next.lang);
+      setProgTopic(next.topic);
+      setProgLesson(next.lesson);
+      setActiveId(next.formulaId);
+    }
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
   useEffect(() => {
@@ -172,7 +262,10 @@ export function KaavastoApp() {
       if (event.key === "Escape") {
         if (activeId) {
           setActiveId(null);
-          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+          window.history.replaceState(null, "", pathOf());
+        } else if (progLesson) {
+          setProgLesson(null);
+          window.history.replaceState(null, "", `${pathOf()}${progListHash(progLang, progTopic)}`);
         } else if (!typing) {
           setQuery("");
         }
@@ -180,7 +273,7 @@ export function KaavastoApp() {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeId]);
+  }, [activeId, progLesson, progLang, progTopic]);
 
   const visible = useMemo(() => {
     const words = query
@@ -193,11 +286,12 @@ export function KaavastoApp() {
     return FORMULAS.filter((formula) => {
       if (filter === "suosikit" && !favorites.includes(formula.id)) return false;
       if (filter !== "kaikki" && filter !== "suosikit" && formula.category !== filter) return false;
+      if (subFilter && formula.subcategory !== subFilter) return false;
       if (words.length === 0) return true;
       const hay = formulaHaystack(formula);
       return words.every((word) => hay.includes(word));
     });
-  }, [query, filter, favorites]);
+  }, [query, filter, subFilter, favorites]);
 
   const formula = activeId ? getFormula(activeId) : undefined;
 
@@ -205,13 +299,68 @@ export function KaavastoApp() {
     setActiveId(id);
     setCopied(false);
     setRecent((prev) => [id, ...prev.filter((item) => item !== id)].slice(0, 8));
-    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${id}`);
+    window.history.replaceState(null, "", `${pathOf()}#${id}`);
     window.scrollTo(0, 0);
   }
 
   function closeFormula() {
     setActiveId(null);
-    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    window.history.replaceState(null, "", pathOf());
+  }
+
+  function showSection(next: SectionId) {
+    setSection(next);
+    setQuery("");
+    if (next === "kaavasto") {
+      setActiveId(null);
+      window.history.replaceState(null, "", pathOf());
+    } else {
+      setProgLang("kaikki");
+      setProgTopic(null);
+      setProgLesson(null);
+      window.history.replaceState(null, "", `${pathOf()}#prog`);
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function selectFilter(id: FilterId) {
+    setFilter(id);
+    setSubFilter(null);
+  }
+
+  function selectSubFilter(id: string) {
+    setSubFilter((current) => (current === id ? null : id));
+  }
+
+  function selectProgLang(id: string) {
+    setProgLang(id);
+    setProgTopic(null);
+    setProgLesson(null);
+    window.history.replaceState(null, "", `${pathOf()}${progListHash(id, null)}`);
+  }
+
+  function selectProgTopic(id: string) {
+    const next = progTopic === id ? null : id;
+    setProgTopic(next);
+    setProgLesson(null);
+    window.history.replaceState(null, "", `${pathOf()}${progListHash(progLang, next)}`);
+    window.scrollTo(0, 0);
+  }
+
+  function openLesson(key: string) {
+    if (!getLesson(key)) return;
+    const lang = key.slice(0, key.indexOf("/"));
+    setSection("ohjelmointi");
+    setProgLang(lang);
+    setProgLesson(key);
+    window.history.replaceState(null, "", `${pathOf()}#prog/${key}`);
+    window.scrollTo(0, 0);
+  }
+
+  function closeLesson() {
+    setProgLesson(null);
+    window.history.replaceState(null, "", `${pathOf()}${progListHash(progLang, progTopic)}`);
+    window.scrollTo(0, 0);
   }
 
   function toggleFavorite(id: string) {
@@ -246,8 +395,15 @@ export function KaavastoApp() {
     }
   }
 
-  const countLabel =
-    visible.length === FORMULAS.length
+  const programming = section === "ohjelmointi";
+  const progVisible = programmingCount(progLang, query, progTopic);
+  const countLabel = programming
+    ? progVisible === lessonCount()
+      ? locale === "fi"
+        ? `${lessonCount()} esimerkkiä`
+        : `${lessonCount()} examples`
+      : `${progVisible} / ${lessonCount()}`
+    : visible.length === FORMULAS.length
       ? locale === "fi"
         ? `${FORMULAS.length} kaavaa`
         : `${FORMULAS.length} formulas`
@@ -262,7 +418,9 @@ export function KaavastoApp() {
             <div className="flex min-w-0 items-center gap-3">
               <span className="grid size-11 shrink-0 place-items-center rounded-md bg-ink font-mono text-xl text-paper">ƒ</span>
               <div className="min-w-0">
-                <p className="font-mono text-xs tracking-widest text-accent uppercase">{t(locale, "Insinöörin kaavakirja")}</p>
+                <p className="font-mono text-xs tracking-widest text-accent uppercase">
+                  {programming ? t(locale, "Ohjelmoinnin esimerkit") : t(locale, "Insinöörin kaavakirja")}
+                </p>
                 <h1 className="text-2xl leading-tight font-semibold">Kaavasto</h1>
               </div>
             </div>
@@ -286,17 +444,57 @@ export function KaavastoApp() {
               <p className="font-mono text-sm text-muted tabular-nums">{countLabel}</p>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-2" role="tablist" aria-label={t(locale, "Osio")}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!programming}
+              onClick={() => showSection("kaavasto")}
+              className={clsx(
+                "flex h-11 items-center justify-center gap-2 rounded-md border text-sm font-medium",
+                !programming ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
+              )}
+            >
+              <BookOpen className="size-4" aria-hidden="true" />
+              {t(locale, "Kaavasto")}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={programming}
+              onClick={() => showSection("ohjelmointi")}
+              className={clsx(
+                "flex h-11 items-center justify-center gap-2 rounded-md border text-sm font-medium",
+                programming ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
+              )}
+            >
+              <Code2 className="size-4" aria-hidden="true" />
+              {t(locale, "Ohjelmointi")}
+            </button>
+          </div>
           <label className="relative block">
-            <span className="sr-only">{t(locale, "Hae kaavoja")}</span>
+            <span className="sr-only">{programming ? t(locale, "Hae esimerkkejä") : t(locale, "Hae kaavoja")}</span>
             <Search className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted" aria-hidden="true" />
             <input
               id="kaavasto-search"
               className="h-12 w-full rounded-md border border-line bg-bg pr-4 pl-11 text-base text-ink outline-none"
-              placeholder={t(locale, "Hae: newton, tsiolkovski, aliverkko, epävarmuus…")}
+              placeholder={
+                programming
+                  ? t(locale, "Hae: silmukka, lista, osoitin…")
+                  : t(locale, "Hae: newton, tsiolkovski, aliverkko, epävarmuus…")
+              }
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
                 if (activeId) closeFormula();
+                if (progLesson) {
+                  setProgLesson(null);
+                  window.history.replaceState(
+                    null,
+                    "",
+                    `${pathOf()}${progListHash(progLang, progTopic)}`,
+                  );
+                }
               }}
             />
           </label>
@@ -304,60 +502,206 @@ export function KaavastoApp() {
       </header>
 
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 lg:flex-row lg:px-8">
-        <nav className="hidden w-60 shrink-0 lg:block" aria-label={t(locale, "Aihealueet")}>
-          <ul className="sticky top-32 flex flex-col gap-1">
-            {FILTERS.map((item) => {
-              const count =
-                item.id === "kaikki"
-                  ? FORMULAS.length
-                  : item.id === "suosikit"
-                    ? favorites.length
-                    : FORMULAS.filter((entry) => entry.category === item.id).length;
-              const selected = filter === item.id;
-              return (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => setFilter(item.id)}
-                    className={clsx(
-                      "flex h-11 w-full items-center gap-2 rounded-md px-3 text-left text-sm transition-colors duration-200",
-                      selected ? "bg-ink text-paper" : "text-ink hover:bg-paper",
-                    )}
-                  >
-                    <CategoryGlyph id={item.id} />
-                    <span className="flex-1">{t(locale, item.label)}</span>
-                    <span className={clsx("font-mono text-xs tabular-nums", selected ? "text-ink-soft" : "text-muted")}>{count}</span>
-                  </button>
-                </li>
-              );
-            })}
+        <nav className="hidden w-60 shrink-0 lg:block" aria-label={programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}>
+          <ul className="sticky top-60 flex max-h-[calc(100dvh-16rem)] flex-col gap-1 overflow-y-auto">
+            {programming
+              ? [{ id: "kaikki", label: "Kaikki", short: "", count: lessonCount() }, ...LANGUAGES.map((language) => ({
+                  id: language.id,
+                  label: language.name,
+                  short: language.short,
+                  count: languageLessonCount(language.id),
+                }))].map((item) => {
+                  const selected = progLang === item.id;
+                  const topics = selected && item.id !== "kaikki" ? languageTopics(item.id, locale) : [];
+                  return (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => selectProgLang(item.id)}
+                        className={clsx(
+                          "flex h-11 w-full items-center gap-2 rounded-md px-3 text-left text-sm transition-colors duration-200",
+                          selected ? "bg-ink text-paper" : "text-ink hover:bg-paper",
+                        )}
+                      >
+                        {item.short ? (
+                          <span className={clsx("w-10 shrink-0 font-mono text-xs", selected ? "text-ink-soft" : "text-muted")}>{item.short}</span>
+                        ) : (
+                          <BookOpen className={clsx("size-4 shrink-0", selected ? "text-ink-soft" : "text-muted")} aria-hidden="true" />
+                        )}
+                        <span className="flex-1">{item.id === "kaikki" ? t(locale, item.label) : item.label}</span>
+                        <span className={clsx("font-mono text-xs tabular-nums", selected ? "text-ink-soft" : "text-muted")}>{item.count}</span>
+                      </button>
+                      {topics.length > 0 ? (
+                        <ul className="mt-1 mb-2 ml-5 flex flex-col gap-0.5 border-l border-line pl-2">
+                          {topics.map((topic) => {
+                            const topicOn = progTopic === topic.id;
+                            return (
+                              <li key={topic.id}>
+                                <button
+                                  type="button"
+                                  aria-pressed={topicOn}
+                                  onClick={() => selectProgTopic(topic.id)}
+                                  className={clsx(
+                                    "flex h-10 w-full items-center gap-2 rounded-md px-2 text-left text-sm",
+                                    topicOn ? "bg-accent-soft font-medium text-ink" : "text-muted hover:bg-paper hover:text-ink",
+                                  )}
+                                >
+                                  <span className="flex-1">{topic.label}</span>
+                                  <span className="font-mono text-xs tabular-nums">{topic.count}</span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      ) : null}
+                    </li>
+                  );
+                })
+              : FILTERS.map((item) => {
+                  const count =
+                    item.id === "kaikki"
+                      ? FORMULAS.length
+                      : item.id === "suosikit"
+                        ? favorites.length
+                        : FORMULAS.filter((entry) => entry.category === item.id).length;
+                  const selected = filter === item.id;
+                  return (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => selectFilter(item.id)}
+                        className={clsx(
+                          "flex h-11 w-full items-center gap-2 rounded-md px-3 text-left text-sm transition-colors duration-200",
+                          selected ? "bg-ink text-paper" : "text-ink hover:bg-paper",
+                        )}
+                      >
+                        <CategoryGlyph id={item.id} />
+                        <span className="flex-1">{t(locale, item.label)}</span>
+                        <span className={clsx("font-mono text-xs tabular-nums", selected ? "text-ink-soft" : "text-muted")}>{count}</span>
+                      </button>
+                      {selected && item.id !== "kaikki" && item.id !== "suosikit" ? (
+                        <ul className="mt-1 mb-2 ml-5 flex flex-col gap-0.5 border-l border-line pl-2">
+                          {categorySubs(item.id).map((sub) => {
+                            const subOn = subFilter === sub.id;
+                            return (
+                              <li key={sub.id}>
+                                <button
+                                  type="button"
+                                  aria-pressed={subOn}
+                                  onClick={() => selectSubFilter(sub.id)}
+                                  className={clsx(
+                                    "flex h-10 w-full items-center gap-2 rounded-md px-2 text-left text-sm",
+                                    subOn ? "bg-accent-soft font-medium text-ink" : "text-muted hover:bg-paper hover:text-ink",
+                                  )}
+                                >
+                                  <span className="flex-1">{subcategoryLabel(sub.id, locale)}</span>
+                                  <span className="font-mono text-xs tabular-nums">{sub.count}</span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      ) : null}
+                    </li>
+                  );
+                })}
           </ul>
         </nav>
 
         <main className="min-w-0 flex-1">
-          <div className="mb-4 flex gap-2 overflow-x-auto lg:hidden" aria-label={t(locale, "Aihealueet")}>
-            {FILTERS.map((item) => {
-              const selected = filter === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => setFilter(item.id)}
-                  className={clsx(
-                    "flex h-11 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
-                    selected ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink",
-                  )}
-                >
-                  <CategoryGlyph id={item.id} />
-                  {t(locale, item.label)}
-                </button>
-              );
-            })}
+          <div className="mb-4 flex flex-col gap-2 lg:hidden">
+            <div className="flex gap-2 overflow-x-auto" aria-label={programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}>
+              {programming
+                ? [{ id: "kaikki", label: "Kaikki" }, ...LANGUAGES.map((language) => ({ id: language.id, label: language.name }))].map((item) => {
+                    const selected = progLang === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => selectProgLang(item.id)}
+                        className={clsx(
+                          "flex h-11 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
+                          selected ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink",
+                        )}
+                      >
+                        {item.id === "kaikki" ? t(locale, item.label) : item.label}
+                      </button>
+                    );
+                  })
+                : FILTERS.map((item) => {
+                    const selected = filter === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => selectFilter(item.id)}
+                        className={clsx(
+                          "flex h-11 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
+                          selected ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink",
+                        )}
+                      >
+                        <CategoryGlyph id={item.id} />
+                        {t(locale, item.label)}
+                      </button>
+                    );
+                  })}
+            </div>
+            {programming && progLang !== "kaikki" ? (
+              <div className="flex gap-2 overflow-x-auto" aria-label={t(locale, "Osio")}>
+                {languageTopics(progLang, locale).map((topic) => {
+                  const topicOn = progTopic === topic.id;
+                  return (
+                    <button
+                      key={topic.id}
+                      type="button"
+                      aria-pressed={topicOn}
+                      onClick={() => selectProgTopic(topic.id)}
+                      className={clsx(
+                        "flex h-11 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
+                        topicOn ? "border-accent bg-accent-soft text-ink" : "border-line bg-paper text-ink",
+                      )}
+                    >
+                      {topic.label}
+                      <span className="font-mono text-xs text-muted tabular-nums">{topic.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+            {!programming && filter !== "kaikki" && filter !== "suosikit" ? (
+              <div className="flex gap-2 overflow-x-auto" aria-label={t(locale, "Osio")}>
+                {categorySubs(filter).map((sub) => {
+                  const subOn = subFilter === sub.id;
+                  return (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      aria-pressed={subOn}
+                      onClick={() => selectSubFilter(sub.id)}
+                      className={clsx(
+                        "flex h-11 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
+                        subOn ? "border-accent bg-accent-soft text-ink" : "border-line bg-paper text-ink",
+                      )}
+                    >
+                      {subcategoryLabel(sub.id, locale)}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
 
-          {formula ? (
+          {programming ? (
+            progLesson ? (
+              <ProgrammingLesson lessonKey={progLesson} onBack={closeLesson} onOpen={openLesson} />
+            ) : (
+              <ProgrammingLibrary query={query} langId={progLang} topicId={progTopic} onOpen={openLesson} />
+            )
+          ) : formula ? (
             <Worksheet
               formula={formula}
               favorite={favorites.includes(formula.id)}
@@ -390,7 +734,9 @@ export function KaavastoApp() {
       </div>
 
       <footer className="mx-auto max-w-6xl px-4 pt-2 pb-10 text-sm text-muted lg:px-8">
-        {t(locale, "Laskurit ovat tarkastus- ja opiskelukäyttöön. Kriittinen mitoitus tarkistetaan alkuperäislähteestä. Haku avautuu näppäimellä /.")}
+        {programming
+          ? t(locale, "Esimerkit ovat tiiviitä muistilistoja. Kielen oma dokumentaatio on virallinen lähde. Haku avautuu näppäimellä /.")
+          : t(locale, "Laskurit ovat tarkastus- ja opiskelukäyttöön. Kriittinen mitoitus tarkistetaan alkuperäislähteestä. Haku avautuu näppäimellä /.")}
       </footer>
     </div>
     </LocaleContext.Provider>
