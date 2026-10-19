@@ -4,13 +4,18 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-// Relative base works when the built dist/ is served from any subpath,
-// including https://<user>.github.io/<repo>/. Override with VITE_BASE=/repo/.
+// Relative base works from any subpath, including
+// https://<user>.github.io/<repo>/. Override with VITE_BASE=/repo/.
 const base = process.env.VITE_BASE || "./";
 const root = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   base,
+  // GitHub Pages "Deploy from a branch" only offers / (root) or /docs.
+  build: {
+    outDir: "docs",
+    emptyOutDir: true,
+  },
   server: {
     host: "0.0.0.0",
     port: 8080,

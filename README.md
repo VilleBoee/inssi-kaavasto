@@ -18,22 +18,16 @@ npm run build
 npm run preview
 ```
 
-`dist/` käyttää oletuksena suhteellisia osoitteita, joten sama paketti toimii sekä paikallisesti että polussa `https://<käyttäjä>.github.io/<repositorio>/`.
+`npm run build` kirjoittaa valmiin sivuston kansioon `docs/` (ei `dist/`). Tiedostot käyttävät suhteellisia osoitteita, joten sama paketti toimii polussa `https://<käyttäjä>.github.io/<repositorio>/`.
 
-Jos sivusto julkaistaan tunnettuun polkuun käsin, buildin voi tehdä näin:
+## GitHub Pages haarasta
 
-```bash
-VITE_BASE=/XXXX/ npm run build
-```
+GitHubin kansiovalikossa on vain `/ (root)` ja `/docs`. `dist` ei ole vaihtoehto, eikä juuri toimi: juuren `index.html` on kehitysversio.
 
-Käyttäjäsivustolla (`käyttäjä.github.io` ilman alirepoa) käytä `VITE_BASE=/`.
+1. Aja `npm run build` ja työnnä `docs/`-kansio `main`-haaraan.
+2. **Settings → Pages → Build and deployment**.
+3. Source: **Deploy from a branch**. Branch: **main**. Folder: **/docs**. **Save**.
 
-## GitHub Pages
+Osoite on `https://<käyttäjä>.github.io/<repositorio>/`. Yksittäinen kaava: `https://<käyttäjä>.github.io/<repositorio>/#ohm`.
 
-1. Luo GitHub-repositorio, esimerkiksi `XXXX`, ja työnnä tämä projekti sen `main`-haaraan.
-2. Avaa repositorion **Settings → Pages → Build and deployment** ja valitse lähteeksi **GitHub Actions**.
-3. Workflow `.github/workflows/pages.yml` rakentaa sivuston ja julkaisee sen.
-
-Osoite on `https://<käyttäjä>.github.io/XXXX/`. Yksittäinen kaava avautuu hashilla, esimerkiksi `https://<käyttäjä>.github.io/XXXX/#ohm`.
-
-Repositorion pitää olla julkinen, jos et käytä GitHub Prota Pages-julkaisuun.
+`docs/.nojekyll` estää Jekylliä käsittelemästä sivustoa. Repositorion pitää olla julkinen, jos et käytä GitHub Prota.
