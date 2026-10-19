@@ -40,10 +40,7 @@ export function createWorkspace(name: string): Workspace {
     id: createId(),
     name,
     angle: "deg",
-    blocks: [
-      { id: createId(), kind: "calc", expr: "" },
-      { id: createId(), kind: "note", text: "" },
-    ],
+    blocks: [],
   };
 }
 
@@ -85,12 +82,21 @@ export function normalizeFile(value: unknown): WorkspaceFile | null {
   const workspaces: Workspace[] = [];
   for (const item of value.workspaces) {
     if (!isRecord(item) || !Array.isArray(item.blocks)) continue;
-    const blocks = item.blocks.map(cleanBlock).filter((block): block is Block => Boolean(block));
+    const blocks = item.blocks
+      .map(cleanBlock)
+      .filter((block): block is Block => Boolean(block))
+      .filter((block, _, all) => {
+        const onlyBlankDefaults =
+          all.length === 2 &&
+          all.some((entry) => entry.kind === "calc" && entry.expr.trim() === "") &&
+          all.some((entry) => entry.kind === "note" && entry.text.trim() === "");
+        return !onlyBlankDefaults;
+      });
     workspaces.push({
       id: typeof item.id === "string" && item.id ? item.id : createId(),
       name: typeof item.name === "string" && item.name.trim() ? item.name.trim() : "Työtila",
       angle: item.angle === "rad" ? "rad" : "deg",
-      blocks: blocks.length > 0 ? blocks : createWorkspace("x").blocks,
+      blocks,
     });
   }
   if (workspaces.length === 0) return null;
