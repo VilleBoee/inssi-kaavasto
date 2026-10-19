@@ -241,9 +241,9 @@ export function ProgrammingLesson({
         </ul>
       </section>
 
-      <section className="overflow-hidden rounded-lg bg-ink text-paper">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-soft px-4 py-3">
-          <h3 className="font-mono text-xs tracking-widest text-ink-soft uppercase">{lesson.file}</h3>
+      <section className="code-surface overflow-hidden rounded-lg">
+        <div className="code-line flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
+          <h3 className="code-muted font-mono text-xs tracking-widest uppercase">{lesson.file}</h3>
           <div className="flex flex-wrap gap-2">
             {language.runnable ? (
               <button
@@ -263,13 +263,13 @@ export function ProgrammingLesson({
                   setDraft(lesson.code);
                   setOutput(lesson.output ?? "");
                 }}
-                className="flex h-11 items-center gap-2 rounded-md border border-ink-soft px-3 text-sm text-paper"
+                className="code-line flex h-11 items-center gap-2 rounded-md border px-3 text-sm"
               >
                 <RotateCcw className="size-4" aria-hidden="true" />
                 {t(locale, "Palauta esimerkki")}
               </button>
             ) : null}
-            <button type="button" onClick={() => void copyCode()} className="flex h-11 items-center gap-2 rounded-md border border-ink-soft px-3 text-sm text-paper">
+            <button type="button" onClick={() => void copyCode()} className="code-line flex h-11 items-center gap-2 rounded-md border px-3 text-sm">
               {copied ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
               {copied ? t(locale, "Kopioitu") : t(locale, "Kopioi")}
             </button>
@@ -281,7 +281,7 @@ export function ProgrammingLesson({
             spellCheck={false}
             aria-label={tx(locale, lesson.title)}
             onChange={(event) => setDraft(event.target.value)}
-            className="min-h-64 w-full resize-y bg-ink px-4 py-4 font-mono text-sm leading-relaxed text-paper outline-none"
+            className="code-surface min-h-64 w-full resize-y px-4 py-4 font-mono text-sm leading-relaxed outline-none"
           />
         ) : (
           <pre className="overflow-x-auto px-4 py-4 font-mono text-sm leading-relaxed">

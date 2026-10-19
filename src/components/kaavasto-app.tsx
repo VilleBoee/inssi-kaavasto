@@ -14,6 +14,8 @@ import {
   Sigma,
   SquarePen,
   Star,
+  Sun,
+  Moon,
   Zap,
 } from "lucide-react";
 import { clsx } from "clsx";
@@ -42,7 +44,7 @@ import {
   programmingCount,
 } from "@/components/ohjelmointi";
 import { WorkspacePanel } from "@/components/workspace-panel";
-import { createId, loadWorkspaces, saveWorkspaces, type WorkspaceFile } from "@/lib/workspace";
+import { createId, emptyFile, loadWorkspaces, saveWorkspaces, type WorkspaceFile } from "@/lib/workspace";
 
 type FilterId = "kaikki" | "suosikit" | CategoryId;
 
@@ -231,9 +233,16 @@ export function KaavastoApp() {
   const [drafts, setDrafts] = useState<Record<string, Record<string, string>>>({});
   const [copied, setCopied] = useState(false);
   const [locale, setUiLocale] = useState<Locale>("fi");
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const stored = localStorage.getItem("kaavasto:theme");
+    const next = stored === "dark" ? "dark" : "light";
+    document.documentElement.classList.toggle("dark", next === "dark");
+    return next;
+  });
   const [wsFile, setWsFile] = useState<WorkspaceFile>(() => loadWorkspaces());
   const [wsOpen, setWsOpen] = useState(false);
   const [catalogHidden, setCatalogHidden] = useState(false);
+  const [clearAsk, setClearAsk] = useState(false);
   const [wsReady, setWsReady] = useState(false);
   setLocale(locale);
 
@@ -327,6 +336,22 @@ export function KaavastoApp() {
     localStorage.setItem("kaavasto:locale", locale);
     document.documentElement.lang = locale;
   }, [locale, ready]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    if (!ready) return;
+    localStorage.setItem("kaavasto:theme", theme);
+  }, [theme, ready]);
+
+  function clearStorage() {
+    localStorage.clear();
+    setFavorites([]);
+    setRecent([]);
+    setDrafts({});
+    setUiLocale("fi");
+    setTheme("light");
+    setWsFile(emptyFile());
+  }
 
   function addWorkspaceBlock(block: WorkspaceFile["workspaces"][number]["blocks"][number]) {
     setWsFile((current) => ({
@@ -486,7 +511,8 @@ export function KaavastoApp() {
                 <h1 className="text-2xl leading-tight font-semibold">Kaavasto</h1>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
+              <p className="font-mono text-sm text-muted tabular-nums">{countLabel}</p>
               {programming ? null : (
               <button
                 type="button"
@@ -501,6 +527,13 @@ export function KaavastoApp() {
                 {t(locale, "Oma työtila")}
               </button>
               )}
+              <button
+                type="button"
+                onClick={() => setClearAsk(true)}
+                className="flex h-11 items-center rounded-md border border-line bg-bg px-3 text-sm font-medium text-ink"
+              >
+                {t(locale, "Tyhjennä tallennus")}
+              </button>
               <div className="flex rounded-md border border-line bg-bg p-0.5" role="group" aria-label={t(locale, "Kieli")}>
                 {(["fi", "en"] as const).map((code) => (
                   <button
@@ -517,7 +550,26 @@ export function KaavastoApp() {
                   </button>
                 ))}
               </div>
-              <p className="font-mono text-sm text-muted tabular-nums">{countLabel}</p>
+              <div className="flex rounded-md border border-line bg-bg p-0.5" role="group" aria-label={t(locale, "Teema")}>
+                <button
+                  type="button"
+                  aria-pressed={theme === "light"}
+                  aria-label={t(locale, "Vaalea")}
+                  onClick={() => setTheme("light")}
+                  className={clsx("grid h-11 w-11 place-items-center rounded", theme === "light" ? "bg-ink text-paper" : "text-muted")}
+                >
+                  <Sun className="size-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={theme === "dark"}
+                  aria-label={t(locale, "Tumma")}
+                  onClick={() => setTheme("dark")}
+                  className={clsx("grid h-11 w-11 place-items-center rounded", theme === "dark" ? "bg-ink text-paper" : "text-muted")}
+                >
+                  <Moon className="size-4" aria-hidden="true" />
+                </button>
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2" role="tablist" aria-label={t(locale, "Osio")}>
@@ -576,6 +628,29 @@ export function KaavastoApp() {
           </label>
         </div>
       </header>
+      {clearAsk ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-ink/40 px-4" role="dialog" aria-modal="true" aria-labelledby="clear-storage-title">
+          <div className="w-full max-w-sm rounded-lg border border-line bg-paper p-5 shadow-sm">
+            <h2 id="clear-storage-title" className="text-lg font-semibold">{t(locale, "Haluatko poistaa tallennetut tiedot?")}</h2>
+            <p className="mt-2 text-sm text-pretty text-muted">{t(locale, "Suosikit, kieli ja työtilat poistuvat tästä selaimesta.")}</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" onClick={() => setClearAsk(false)} className="h-11 rounded-md border border-line bg-bg px-3 text-sm">
+                {t(locale, "Peruuta")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  clearStorage();
+                  setClearAsk(false);
+                }}
+                className="h-11 rounded-md bg-ink px-3 text-sm font-medium text-paper"
+              >
+                {t(locale, "Poista")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className={clsx("mx-auto flex flex-col gap-6 px-4 py-6 lg:flex-row lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
         <nav className={clsx("hidden w-60 shrink-0 lg:block", hideCatalog && "lg:hidden")} aria-label={programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}>

@@ -15,6 +15,32 @@
   --color-ink-soft: #c9c3b6;
 }
 
+html.dark {
+  color-scheme: dark;
+  --color-bg: #12110e;
+  --color-paper: #1c1916;
+  --color-ink: #f3efe6;
+  --color-muted: #b0a89c;
+  --color-line: #3a342c;
+  --color-accent: #e07a4c;
+  --color-accent-ink: #1c120e;
+  --color-accent-soft: #3d291f;
+  --color-ink-soft: #5e584e;
+}
+
+.code-surface {
+  background-color: #1c1915;
+  color: #f6f3ec;
+}
+
+.code-muted {
+  color: #c9c3b6;
+}
+
+.code-line {
+  border-color: #6d675e;
+}
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;

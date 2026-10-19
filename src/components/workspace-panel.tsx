@@ -75,6 +75,20 @@ function CalcHelp() {
   );
 }
 
+function encodeBase64(text: string): string {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+function decodeBase64(value: string): string {
+  const binary = atob(value.replace(/\s/g, ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return new TextDecoder().decode(bytes);
+}
+
 function copyPlain(text: string): boolean {
   const area = document.createElement("textarea");
   area.value = text;
@@ -245,23 +259,25 @@ export function WorkspacePanel({
     setMessage(t(locale, "Kopiointi ei onnistunut. Valitse teksti alta."));
   }
 
-  async function exportJson() {
-    const text = JSON.stringify(file, null, 2);
+  async function exportBase64() {
+    const text = encodeBase64(JSON.stringify(file));
     const ok = await copyText(text);
     if (ok) {
       setCopyFallback("");
-      setMessage(t(locale, "JSON kopioitu."));
+      setMessage(t(locale, "Data kopioitu."));
       return;
     }
     setCopyFallback(text);
     setMessage(t(locale, "Kopiointi ei onnistunut. Valitse teksti alta."));
   }
 
-  function importJson() {
+  function importBase64() {
     try {
-      const parsed = normalizeFile(JSON.parse(importText));
+      const raw = importText.trim();
+      const json = raw.startsWith("{") ? raw : decodeBase64(raw);
+      const parsed = normalizeFile(JSON.parse(json));
       if (!parsed) {
-        setMessage(t(locale, "JSON ei ole työtilan muotoa."));
+        setMessage(t(locale, "Data ei ole työtilan muotoa."));
         return;
       }
       const known = new Set(file.workspaces.map((item) => item.id));
@@ -271,7 +287,7 @@ export function WorkspacePanel({
       setImportOpen(false);
       setMessage(t(locale, "Työtilat tuotu."));
     } catch {
-      setMessage(t(locale, "JSON ei ole työtilan muotoa."));
+      setMessage(t(locale, "Data ei ole työtilan muotoa."));
     }
   }
 
@@ -453,11 +469,11 @@ export function WorkspacePanel({
             <Copy className="size-4" aria-hidden="true" />
             {t(locale, copiedSolution ? "Kopioitu" : "Kopioi koko ratkaisu")}
           </button>
-          <button type="button" onClick={() => void exportJson()} className="h-11 rounded-md border border-line bg-bg px-3 text-sm">
-            {t(locale, "Vie JSON")}
+          <button type="button" onClick={() => void exportBase64()} className="h-11 rounded-md border border-line bg-bg px-3 text-sm">
+            {t(locale, "Vie data")}
           </button>
           <button type="button" onClick={() => setImportOpen((open) => !open)} className="h-11 rounded-md border border-line bg-bg px-3 text-sm">
-            {t(locale, "Tuo JSON")}
+            {t(locale, "Tuo data")}
           </button>
         </div>
         {importOpen ? (
@@ -465,11 +481,11 @@ export function WorkspacePanel({
             <textarea
               className="min-h-28 w-full rounded-md border border-line bg-bg px-3 py-3 font-mono text-sm"
               value={importText}
-              placeholder='{"version":1,"workspaces":[]}'
+              placeholder={t(locale, "Liitä tuotava data")}
               onChange={(event) => setImportText(event.target.value)}
-              aria-label={t(locale, "Tuo JSON")}
+              aria-label={t(locale, "Tuo data")}
             />
-            <button type="button" onClick={importJson} className="h-11 rounded-md bg-accent px-3 text-sm font-medium text-accent-ink">
+            <button type="button" onClick={importBase64} className="h-11 rounded-md bg-accent px-3 text-sm font-medium text-accent-ink">
               {t(locale, "Tuo työtilat")}
             </button>
           </div>
