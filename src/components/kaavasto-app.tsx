@@ -16,6 +16,9 @@ import {
   Star,
   Sun,
   Moon,
+  Trash2,
+  Menu,
+  X,
   Zap,
 } from "lucide-react";
 import { clsx } from "clsx";
@@ -242,6 +245,8 @@ export function KaavastoApp() {
   const [wsFile, setWsFile] = useState<WorkspaceFile>(() => loadWorkspaces());
   const [wsOpen, setWsOpen] = useState(false);
   const [catalogHidden, setCatalogHidden] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const [navDocked, setNavDocked] = useState(false);
   const [clearAsk, setClearAsk] = useState(false);
   const [wsReady, setWsReady] = useState(false);
   setLocale(locale);
@@ -296,6 +301,10 @@ export function KaavastoApp() {
         document.getElementById("kaavasto-search")?.focus();
       }
       if (event.key === "Escape") {
+        if (navOpen) {
+          setNavOpen(false);
+          return;
+        }
         if (activeId) {
           setActiveId(null);
           window.history.replaceState(null, "", pathOf());
@@ -309,7 +318,7 @@ export function KaavastoApp() {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeId, progLesson, progLang, progTopic]);
+  }, [activeId, progLesson, progLang, progTopic, navOpen]);
 
   const visible = useMemo(() => {
     const words = query
@@ -411,10 +420,12 @@ export function KaavastoApp() {
   function selectFilter(id: FilterId) {
     setFilter(id);
     setSubFilter(null);
+    if (id === "kaikki" || id === "suosikit") setNavOpen(false);
   }
 
   function selectSubFilter(id: string) {
     setSubFilter((current) => (current === id ? null : id));
+    setNavOpen(false);
   }
 
   function selectProgLang(id: string) {
@@ -422,6 +433,7 @@ export function KaavastoApp() {
     setProgTopic(null);
     setProgLesson(null);
     window.history.replaceState(null, "", `${pathOf()}${progListHash(id, null)}`);
+    if (id === "kaikki") setNavOpen(false);
   }
 
   function selectProgTopic(id: string) {
@@ -430,6 +442,7 @@ export function KaavastoApp() {
     setProgLesson(null);
     window.history.replaceState(null, "", `${pathOf()}${progListHash(progLang, next)}`);
     window.scrollTo(0, 0);
+    setNavOpen(false);
   }
 
   function openLesson(key: string) {
@@ -483,6 +496,27 @@ export function KaavastoApp() {
   const programming = section === "ohjelmointi";
   const showWorkspace = wsOpen && !programming;
   const hideCatalog = showWorkspace && catalogHidden;
+  const navLabel = programming
+    ? progLang === "kaikki"
+      ? t(locale, "Kaikki")
+      : [LANGUAGES.find((item) => item.id === progLang)?.name, progTopic ? languageTopics(progLang, locale).find((item) => item.id === progTopic)?.label : ""]
+          .filter(Boolean)
+          .join(" · ")
+    : [t(locale, FILTERS.find((item) => item.id === filter)?.label ?? "Kaikki"), subFilter ? subcategoryLabel(subFilter, locale) : ""]
+        .filter(Boolean)
+        .join(" · ");
+
+  useEffect(() => {
+    const query = window.matchMedia(showWorkspace ? "(min-width: 1280px)" : "(min-width: 1024px)");
+    const apply = () => {
+      const fits = query.matches;
+      setNavDocked(fits);
+      if (fits) setNavOpen(false);
+    };
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, [showWorkspace]);
   const progVisible = programmingCount(progLang, query, progTopic);
   const countLabel = programming
     ? progVisible === lessonCount()
@@ -500,40 +534,43 @@ export function KaavastoApp() {
     <LocaleContext.Provider value={locale}>
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-line bg-paper">
-        <div className={clsx("mx-auto flex flex-col gap-4 px-4 py-4 lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="grid size-11 shrink-0 place-items-center rounded-md bg-ink font-mono text-xl text-paper">ƒ</span>
+        <div className={clsx("mx-auto flex w-full min-w-0 flex-col gap-2 px-4 py-2 lg:gap-3 lg:px-8 lg:py-4", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2 lg:gap-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-md bg-ink font-mono text-lg text-paper lg:size-11 lg:text-xl">ƒ</span>
               <div className="min-w-0">
-                <p className="font-mono text-xs tracking-widest text-accent uppercase">
+                <p className="hidden truncate font-mono text-[10px] tracking-widest text-accent uppercase sm:block lg:text-xs">
                   {programming ? t(locale, "Ohjelmoinnin esimerkit") : t(locale, "Insinöörin kaavakirja")}
                 </p>
-                <h1 className="flex flex-wrap items-baseline gap-x-2 text-2xl leading-tight font-semibold">
+                <h1 className="flex min-w-0 items-baseline gap-x-2 text-xl leading-none font-semibold lg:text-2xl">
                   Kaavasto
-                  <UpdatedStamp locale={locale} />
+                  <span className="hidden sm:contents">
+                    <UpdatedStamp locale={locale} />
+                  </span>
                 </h1>
               </div>
             </div>
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
-              <p className="font-mono text-sm text-muted tabular-nums">{countLabel}</p>
+            <div className="flex shrink-0 items-center gap-1.5 lg:gap-3">
+              <p className="hidden font-mono text-sm text-muted tabular-nums lg:block">{countLabel}</p>
               {programming ? null : (
-              <button
-                type="button"
-                aria-pressed={wsOpen}
-                onClick={() => setWsOpen((open) => !open)}
-                className={clsx(
-                  "flex h-11 items-center gap-2 rounded-md border px-3 text-sm font-medium",
-                  wsOpen ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
-                )}
-              >
-                <SquarePen className="size-4" aria-hidden="true" />
-                {t(locale, "Oma työtila")}
-              </button>
+                <button
+                  type="button"
+                  aria-pressed={wsOpen}
+                  onClick={() => setWsOpen((open) => !open)}
+                  className={clsx(
+                    "hidden h-11 items-center gap-2 rounded-md border px-3 text-sm font-medium lg:flex",
+                    wsOpen ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
+                  )}
+                >
+                  <SquarePen className="size-4" aria-hidden="true" />
+                  {t(locale, "Oma työtila")}
+                </button>
               )}
               <button
                 type="button"
                 onClick={() => setClearAsk(true)}
-                className="flex h-11 items-center rounded-md border border-line bg-bg px-3 text-sm font-medium text-ink"
+                aria-label={t(locale, "Tyhjennä tallennus")}
+                className="hidden h-11 items-center rounded-md border border-line bg-bg px-3 text-sm font-medium text-ink lg:flex"
               >
                 {t(locale, "Tyhjennä tallennus")}
               </button>
@@ -545,7 +582,7 @@ export function KaavastoApp() {
                     aria-pressed={locale === code}
                     onClick={() => setUiLocale(code)}
                     className={clsx(
-                      "h-11 rounded px-3 font-mono text-sm",
+                      "h-8 rounded px-2 font-mono text-sm lg:h-11 lg:px-3",
                       locale === code ? "bg-ink text-paper" : "text-muted",
                     )}
                   >
@@ -559,7 +596,7 @@ export function KaavastoApp() {
                   aria-pressed={theme === "light"}
                   aria-label={t(locale, "Vaalea")}
                   onClick={() => setTheme("light")}
-                  className={clsx("grid h-11 w-11 place-items-center rounded", theme === "light" ? "bg-ink text-paper" : "text-muted")}
+                  className={clsx("grid size-8 place-items-center rounded lg:size-11", theme === "light" ? "bg-ink text-paper" : "text-muted")}
                 >
                   <Sun className="size-4" aria-hidden="true" />
                 </button>
@@ -568,12 +605,37 @@ export function KaavastoApp() {
                   aria-pressed={theme === "dark"}
                   aria-label={t(locale, "Tumma")}
                   onClick={() => setTheme("dark")}
-                  className={clsx("grid h-11 w-11 place-items-center rounded", theme === "dark" ? "bg-ink text-paper" : "text-muted")}
+                  className={clsx("grid size-8 place-items-center rounded lg:size-11", theme === "dark" ? "bg-ink text-paper" : "text-muted")}
                 >
                   <Moon className="size-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
+          </div>
+          <div className="flex items-center gap-2 lg:hidden">
+            <p className="shrink-0 font-mono text-xs text-muted tabular-nums">{countLabel}</p>
+            {programming ? null : (
+              <button
+                type="button"
+                aria-pressed={wsOpen}
+                onClick={() => setWsOpen((open) => !open)}
+                className={clsx(
+                  "flex h-9 min-w-0 flex-1 items-center justify-center gap-2 rounded-md border px-2 text-sm font-medium",
+                  wsOpen ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
+                )}
+              >
+                <SquarePen className="size-4 shrink-0" aria-hidden="true" />
+                <span className="truncate">{t(locale, "Oma työtila")}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setClearAsk(true)}
+              aria-label={t(locale, "Tyhjennä tallennus")}
+              className="grid size-9 shrink-0 place-items-center rounded-md border border-line bg-bg text-ink"
+            >
+              <Trash2 className="size-4" aria-hidden="true" />
+            </button>
           </div>
           <div className="grid grid-cols-2 gap-2" role="tablist" aria-label={t(locale, "Osio")}>
             <button
@@ -582,7 +644,7 @@ export function KaavastoApp() {
               aria-selected={!programming}
               onClick={() => showSection("kaavasto")}
               className={clsx(
-                "flex h-11 items-center justify-center gap-2 rounded-md border text-sm font-medium",
+                "flex h-9 items-center justify-center gap-2 rounded-md border text-sm font-medium lg:h-11",
                 !programming ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
               )}
             >
@@ -595,7 +657,7 @@ export function KaavastoApp() {
               aria-selected={programming}
               onClick={() => showSection("ohjelmointi")}
               className={clsx(
-                "flex h-11 items-center justify-center gap-2 rounded-md border text-sm font-medium",
+                "flex h-9 items-center justify-center gap-2 rounded-md border text-sm font-medium lg:h-11",
                 programming ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
               )}
             >
@@ -608,7 +670,7 @@ export function KaavastoApp() {
             <Search className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted" aria-hidden="true" />
             <input
               id="kaavasto-search"
-              className="h-12 w-full rounded-md border border-line bg-bg pr-4 pl-11 text-base text-ink outline-none"
+              className="h-10 w-full min-w-0 rounded-md border border-line bg-bg pr-4 pl-11 text-base text-ink outline-none lg:h-12"
               placeholder={
                 programming
                   ? t(locale, "Hae: silmukka, lista, osoitin…")
@@ -655,9 +717,28 @@ export function KaavastoApp() {
         </div>
       ) : null}
 
-      <div className={clsx("mx-auto flex flex-col gap-6 px-4 py-6 lg:flex-row lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
-        <nav className={clsx("hidden w-60 shrink-0 lg:block", hideCatalog && "lg:hidden")} aria-label={programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}>
-          <ul className="sticky top-60 flex max-h-[calc(100dvh-16rem)] flex-col gap-1 overflow-y-auto">
+      <div className={clsx("mx-auto flex w-full min-w-0 flex-col gap-6 px-4 py-6 lg:flex-row lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
+        {navOpen && !navDocked ? (
+          <button type="button" className="fixed inset-0 z-40 bg-ink/40" aria-label={locale === "fi" ? "Sulje valikko" : "Close menu"} onClick={() => setNavOpen(false)} />
+        ) : null}
+        <nav
+          className={clsx(
+            hideCatalog && "hidden",
+            navDocked && !hideCatalog && "w-60 shrink-0",
+            !navDocked && "fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto border-r border-line bg-paper p-4 shadow-sm",
+            !navDocked && !navOpen && "hidden",
+          )}
+          aria-label={programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}
+        >
+          {!navDocked ? (
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold">{programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}</p>
+              <button type="button" onClick={() => setNavOpen(false)} className="grid size-11 place-items-center rounded-md border border-line" aria-label={locale === "fi" ? "Sulje" : "Close"}>
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            </div>
+          ) : null}
+          <ul className={clsx("flex flex-col gap-1", navDocked && "sticky top-52 max-h-[calc(100dvh-14rem)] overflow-y-auto")}>
             {programming
               ? [{ id: "kaikki", label: "Kaikki", short: "", count: lessonCount() }, ...LANGUAGES.map((language) => ({
                   id: language.id,
@@ -764,95 +845,17 @@ export function KaavastoApp() {
           </ul>
         </nav>
 
-        <main className={clsx("min-w-0 flex-1", showWorkspace && "hidden w-full lg:block lg:w-96 lg:flex-none", hideCatalog && "lg:hidden")}>
-          <div className="mb-4 flex flex-col gap-2 lg:hidden">
-            <div className="flex gap-2 overflow-x-auto" aria-label={programming ? t(locale, "Kielet") : t(locale, "Aihealueet")}>
-              {programming
-                ? [{ id: "kaikki", label: "Kaikki" }, ...LANGUAGES.map((language) => ({ id: language.id, label: language.name }))].map((item) => {
-                    const selected = progLang === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => selectProgLang(item.id)}
-                        className={clsx(
-                          "flex h-11 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
-                          selected ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink",
-                        )}
-                      >
-                        {item.id === "kaikki" ? t(locale, item.label) : (
-                          <>
-                            <LanguageGlyph id={item.id} />
-                            {item.label}
-                          </>
-                        )}
-                      </button>
-                    );
-                  })
-                : FILTERS.map((item) => {
-                    const selected = filter === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => selectFilter(item.id)}
-                        className={clsx(
-                          "flex h-11 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
-                          selected ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink",
-                        )}
-                      >
-                        <CategoryGlyph id={item.id} />
-                        {t(locale, item.label)}
-                      </button>
-                    );
-                  })}
-            </div>
-            {programming && progLang !== "kaikki" ? (
-              <div className="flex gap-2 overflow-x-auto" aria-label={t(locale, "Osio")}>
-                {languageTopics(progLang, locale).map((topic) => {
-                  const topicOn = progTopic === topic.id;
-                  return (
-                    <button
-                      key={topic.id}
-                      type="button"
-                      aria-pressed={topicOn}
-                      onClick={() => selectProgTopic(topic.id)}
-                      className={clsx(
-                        "flex h-11 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
-                        topicOn ? "border-accent bg-accent-soft text-ink" : "border-line bg-paper text-ink",
-                      )}
-                    >
-                      {topic.label}
-                      <span className="font-mono text-xs text-muted tabular-nums">{topic.count}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
-            {!programming && filter !== "kaikki" && filter !== "suosikit" ? (
-              <div className="flex gap-2 overflow-x-auto" aria-label={t(locale, "Osio")}>
-                {categorySubs(filter).map((sub) => {
-                  const subOn = subFilter === sub.id;
-                  return (
-                    <button
-                      key={sub.id}
-                      type="button"
-                      aria-pressed={subOn}
-                      onClick={() => selectSubFilter(sub.id)}
-                      className={clsx(
-                        "flex h-11 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
-                        subOn ? "border-accent bg-accent-soft text-ink" : "border-line bg-paper text-ink",
-                      )}
-                    >
-                      {subcategoryLabel(sub.id, locale)}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
-          </div>
+        <main className={clsx("w-full min-w-0 flex-1", showWorkspace && "hidden w-full lg:block lg:w-96 lg:flex-none", hideCatalog && "lg:hidden")}>
+          {!navDocked && !hideCatalog ? (
+            <button
+              type="button"
+              onClick={() => setNavOpen(true)}
+              className="mb-4 flex h-11 w-full items-center gap-2 rounded-md border border-line bg-paper px-3 text-sm"
+            >
+              <Menu className="size-4 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 flex-1 truncate text-left">{navLabel}</span>
+            </button>
+          ) : null}
 
           {programming ? (
             progLesson ? (
@@ -915,12 +918,14 @@ export function KaavastoApp() {
         ) : null}
       </div>
 
-      <footer className={clsx("mx-auto mt-auto w-full px-4 pt-6 pb-14 text-sm text-muted lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
-        {programming
-          ? t(locale, "Esimerkit ovat tiiviitä muistilistoja. Kielen oma dokumentaatio on virallinen lähde. Haku avautuu näppäimellä /.")
-          : t(locale, "Laskurit ovat tarkastus- ja opiskelukäyttöön. Kriittinen mitoitus tarkistetaan alkuperäislähteestä. Haku avautuu näppäimellä /.")}
+      <footer className={clsx("relative mx-auto mt-auto w-full min-w-0 px-4 pt-6 pb-6 text-sm text-muted lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
+        <p>
+          {programming
+            ? t(locale, "Esimerkit ovat tiiviitä muistilistoja. Kielen oma dokumentaatio on virallinen lähde. Haku avautuu näppäimellä /.")
+            : t(locale, "Laskurit ovat tarkastus- ja opiskelukäyttöön. Kriittinen mitoitus tarkistetaan alkuperäislähteestä. Haku avautuu näppäimellä /.")}
+        </p>
+        <UpdateLog locale={locale} />
       </footer>
-      <UpdateLog locale={locale} />
     </div>
     </LocaleContext.Provider>
   );
@@ -947,7 +952,7 @@ function UpdateLog({ locale }: { locale: Locale }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
   return (
-    <div className="fixed bottom-3 left-3 z-30">
+    <div className="relative z-30 mt-6 lg:fixed lg:bottom-3 lg:left-3 lg:mt-0">
       {open ? (
         <section className="mb-2 w-72 max-w-[calc(100vw-1.5rem)] rounded-lg border border-line bg-paper p-3 text-xs leading-relaxed text-muted shadow-sm" aria-label={title}>
           <div className="flex items-center justify-between gap-3">

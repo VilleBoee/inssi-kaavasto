@@ -292,7 +292,7 @@ export function WorkspacePanel({
   }
 
   return (
-    <aside className="flex max-h-[calc(100dvh-8rem)] w-full min-w-0 shrink flex-col overflow-hidden rounded-lg border border-line bg-paper lg:sticky lg:top-60 lg:flex-1">
+    <aside className="flex w-full min-w-0 shrink flex-col rounded-lg border border-line bg-paper max-lg:overflow-visible lg:sticky lg:top-60 lg:max-h-[calc(100dvh-8rem)] lg:flex-1 lg:overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
         <h2 className="text-lg font-semibold">{t(locale, "Oma työtila")}</h2>
         <div className="flex items-center gap-2">
@@ -368,7 +368,7 @@ export function WorkspacePanel({
           })}
         </ul>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4 max-lg:overflow-visible lg:overflow-y-auto">
         <p className="text-sm text-pretty text-muted">{t(locale, "Työtilat säilyvät tässä selaimessa. Ne eivät siirry toiselle laitteelle.")}</p>
         <div className="flex flex-col gap-1.5">
           <p className="text-sm text-muted">{t(locale, "Vain trigonometria: sin, cos ja tan")}</p>

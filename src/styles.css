@@ -45,9 +45,12 @@ html.dark {
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
   }
 
   body {
+    max-width: 100%;
+    overflow-x: clip;
     background-color: var(--color-bg);
     color: var(--color-ink);
     font-family: var(--font-sans);
