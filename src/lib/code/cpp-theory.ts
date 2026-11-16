@@ -16,7 +16,7 @@ A variable is a named place in memory. The statement §credits = credits + 5§ r
   tools: {
     fi: `Työ jakautuu neljään työkaluun. **Editori** tallentaa pelkän tekstin. [[Kääntäjä]] tarkistaa kieliopin ja tekee objektitiedoston. [[Linkkeri]] yhdistää objektitiedostot ja kirjastot yhdeksi ohjelmaksi. [[Debugger]] pysäyttää ajon riville ja näyttää muuttujien arvot.
 
-§g++§ on sekä kääntäjä että linkkeri. §g++ -c ohjelma.cpp§ pysähtyy objektitiedostoon. Ilman §-c§ syntyy valmis ohjelma. §-g§ jättää mukaan tiedon, jota §gdb§ tarvitsee: ilman sitä debugger näkee vain konekieltä.
+§g++§ on sekä kääntäjä että linkkeri. §g++ -c program.cpp§ pysähtyy objektitiedostoon. Ilman §-c§ syntyy valmis ohjelma. §-g§ jättää mukaan tiedon, jota §gdb§ tarvitsee: ilman sitä debugger näkee vain konekieltä.
 
 >> Käännösvirhe kertoo tiedoston ja rivin. Lue ensimmäinen virhe, älä viimeistä. Myöhemmät rivit ovat usein seurausta ensimmäisestä puuttuvasta puolipisteestä.`,
     en: `The work splits into four tools. An **editor** saves plain text. A [[compiler]] checks the grammar and makes an object file. A [[linker]] joins object files and libraries into one program. A [[debugger]] stops the run on a line and shows the values of variables.
@@ -198,12 +198,12 @@ Keep the record as data. An operation, such as adding credits, is a function bes
 
 §#pragma once§ estää saman otsikon liittämisen kahdesti, mikä muuten aiheuttaisi määritelmän kahteen kertaan. Otsikkoon ei kuulu tulostus eikä main. Kun toteutus muuttuu mutta nimet pysyvät, kutsujia ei tarvitse kirjoittaa uusiksi.
 
->> Käännä jokainen toteutus ja linkitä ne yhteen: §g++ opiskelija.cpp main.cpp -o ohjelma§. Esimerkki näyttää kolme tiedostoa peräkkäin, jotta rajapinta ja toteutus mahtuvat samaan ruutuun. Oikeassa työssä ne ovat erillisiä tiedostoja.`,
+>> Käännä jokainen toteutus ja linkitä ne yhteen: §g++ student.cpp main.cpp -o program§. Esimerkki näyttää kolme tiedostoa peräkkäin, jotta rajapinta ja toteutus mahtuvat samaan ruutuun. Oikeassa työssä ne ovat erillisiä tiedostoja.`,
     en: `A large program is split into an **interface** and an **implementation**. The interface is the header §.h§: the types and the names of the functions, not their bodies. The implementation is the §.cpp§. The caller, usually §main.cpp§, sees only the header.
 
 §#pragma once§ stops the same header from being included twice, which would otherwise define the same name twice. Printing and main do not belong in the header. When the implementation changes but the names stay, the callers do not have to be rewritten.
 
->> Compile each implementation and link them: §g++ opiskelija.cpp main.cpp -o ohjelma§. The sample shows three files one after another so the interface and the implementation fit on one screen. In a real project they are separate files.`,
+>> Compile each implementation and link them: §g++ student.cpp main.cpp -o program§. The sample shows three files one after another so the interface and the implementation fit on one screen. In a real project they are separate files.`,
   },
   project: {
     fi: `**Harjoitustyö** kokoaa kurssin yhdeksi ohjelmaksi. Tietue kuvaa opiskelijan. Taulukko pitää ryhmän. Funktio §addCredits§ muuttaa yhtä opiskelijaa viittauksen kautta. Funktio §average§ lukee koko taulukon eikä muuta sitä, siksi parametri on §const§.
@@ -374,14 +374,14 @@ Creating an object §Meter meter(12)§ calls the constructor. The constructor wr
 >> Do not make everything a class. One record and free functions are enough when there is no rule the object must enforce itself. A class is worth it when a field has a condition, for example a voltage that must not be negative.`,
   },
   files: {
-    fi: `**Tiedosto** luetaan ja kirjoitetaan vuona, samaan tapaan kuin cin ja cout. §std::ifstream in("mittaus.txt")§ avaa tiedoston lukemista varten. Tarkista §if (!in)§ heti. Jos tiedostoa ei ole, vuon tila on virhe, ja luku ei tuota lukuja.
+    fi: `**Tiedosto** luetaan ja kirjoitetaan vuona, samaan tapaan kuin cin ja cout. §std::ifstream in("measurements.txt")§ avaa tiedoston lukemista varten. Tarkista §if (!in)§ heti. Jos tiedostoa ei ole, vuon tila on virhe, ja luku ei tuota lukuja.
 
-§in >> voltage§ lukee seuraavan luvun ja ohittaa välin. Rivi kerrallaan luetaan §std::getline(in, line)§. Kirjoitus on §std::ofstream out("tulos.txt")§ ja §out << voltage§. Tiedosto sulkeutuu, kun virta tuhoutuu lohkon lopussa.
+§in >> voltage§ lukee seuraavan luvun ja ohittaa välin. Rivi kerrallaan luetaan §std::getline(in, line)§. Kirjoitus on §std::ofstream out("result.txt")§ ja §out << voltage§. Tiedosto sulkeutuu, kun virta tuhoutuu lohkon lopussa.
 
 >> Polku on suhteessa siihen kansioon, josta ohjelma käynnistettiin, ei siihen kansioon, jossa lähdekoodi on. Jos avaus epäonnistuu, tulosta polku. Usein ohjelma etsii väärästä paikasta.`,
-    en: `A **file** is read and written as a stream, the same way as cin and cout. §std::ifstream in("mittaus.txt")§ opens a file for reading. Check §if (!in)§ immediately. If the file is missing, the stream is in an error state and a read does not produce numbers.
+    en: `A **file** is read and written as a stream, the same way as cin and cout. §std::ifstream in("measurements.txt")§ opens a file for reading. Check §if (!in)§ immediately. If the file is missing, the stream is in an error state and a read does not produce numbers.
 
-§in >> voltage§ reads the next number and skips whitespace. A whole line is read with §std::getline(in, line)§. Writing is §std::ofstream out("tulos.txt")§ and §out << voltage§. The file closes when the stream is destroyed at the end of the block.
+§in >> voltage§ reads the next number and skips whitespace. A whole line is read with §std::getline(in, line)§. Writing is §std::ofstream out("result.txt")§ and §out << voltage§. The file closes when the stream is destroyed at the end of the block.
 
 >> The path is relative to the folder from which the program was started, not the folder where the source code lives. If opening fails, print the path. Often the program is looking in the wrong place.`,
   },

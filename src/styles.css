@@ -1,44 +1,218 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: Inter, "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
 
-  --color-bg: #e7e2d6;
-  --color-paper: #f6f3ec;
-  --color-ink: #1c1915;
-  --color-muted: #6d675e;
-  --color-line: #d5cfc3;
-  --color-accent: #b8431f;
-  --color-accent-ink: #fff7f2;
-  --color-accent-soft: #f6e4d8;
-  --color-ink-soft: #c9c3b6;
+  --color-bg: #f7f7f5;
+  --color-paper: #ffffff;
+  --color-ink: #15171c;
+  --color-muted: #40444d;
+  --color-line: #dcdcd6;
+  --color-control: #8a8d94;
+  --color-accent: #1d4ed8;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #e8eefc;
+  --color-ink-soft: #8b909a;
+  --color-primary: #1d4ed8;
+  --color-primary-soft: #e8eefc;
+  --color-formula: #eef3ff;
+  --color-formula-rule: #1d4ed8;
 }
 
 html.dark {
   color-scheme: dark;
-  --color-bg: #12110e;
-  --color-paper: #1c1916;
-  --color-ink: #f3efe6;
-  --color-muted: #b0a89c;
-  --color-line: #3a342c;
-  --color-accent: #e07a4c;
-  --color-accent-ink: #1c120e;
-  --color-accent-soft: #3d291f;
-  --color-ink-soft: #5e584e;
+  --color-bg: #0f1115;
+  --color-paper: #171a20;
+  --color-ink: #ecedef;
+  --color-muted: #c2c5cc;
+  --color-line: #2c313a;
+  --color-control: #6b717c;
+  --color-accent: #7ea2ff;
+  --color-accent-ink: #0f1115;
+  --color-accent-soft: #1c2744;
+  --color-ink-soft: #9a9ea7;
+  --color-primary: #7ea2ff;
+  --color-primary-soft: #1c2744;
+  --color-formula: #1c2744;
+  --color-formula-rule: #7ea2ff;
+}
+
+.brand-mark {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.formula-band {
+  background: var(--color-formula);
+  border-left: 4px solid var(--color-formula-rule);
+}
+
+.result-panel {
+  background: #15171c;
+  color: #f4f4f2;
+}
+
+html.dark .result-panel {
+  background: #0b0d10;
+  color: #ecedef;
+}
+
+.html-preview {
+  color: var(--color-ink);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.html-preview :where(h1, h2, h3, h4, p, ul, ol, figure, table, form, header, main, section, footer) {
+  margin: 0;
+}
+
+.html-preview :where(h1) {
+  margin-bottom: 0.6rem;
+  font-size: 1.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.html-preview :where(h2) {
+  margin: 1.1rem 0 0.4rem;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.html-preview :where(h3) {
+  margin: 1rem 0 0.35rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.html-preview :where(p, ul, ol, figure, table, form, audio) {
+  margin-bottom: 0.75rem;
+}
+
+.html-preview :where(p:last-child, ul:last-child, ol:last-child, figure:last-child, table:last-child, form:last-child) {
+  margin-bottom: 0;
+}
+
+.html-preview :where(strong) {
+  font-weight: 600;
+}
+
+.html-preview :where(em) {
+  font-style: italic;
+}
+
+.html-preview :where(a) {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.html-preview :where(ul) {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.html-preview :where(ol) {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+
+.html-preview :where(li + li) {
+  margin-top: 0.2rem;
+}
+
+.html-preview :where(code) {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.html-preview :where(table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.html-preview :where(th, td) {
+  border: 1px solid var(--color-line);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+
+.html-preview :where(th) {
+  font-weight: 600;
+  background: var(--color-bg);
+}
+
+.html-preview :where(caption, figcaption) {
+  margin-top: 0.35rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.html-preview :where(img) {
+  display: block;
+  max-width: 12rem;
+  min-height: 4.5rem;
+  border: 1px dashed var(--color-control);
+  background: var(--color-bg);
+  object-fit: contain;
+}
+
+.html-preview :where(label) {
+  display: block;
+  margin-top: 0.65rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.html-preview :where(input, select, textarea) {
+  display: block;
+  width: min(100%, 18rem);
+  border: 1px solid var(--color-control);
+  border-radius: 0.375rem;
+  background: var(--color-paper);
+  padding: 0.4rem 0.6rem;
+}
+
+.html-preview :where(button) {
+  margin-top: 0.75rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 0.45rem 0.8rem;
+  font-weight: 500;
+}
+
+.result-muted {
+  color: #b4b7be;
+}
+
+.result-error {
+  color: #d6e4ff;
+}
+
+.result-line {
+  border-color: rgb(255 255 255 / 0.16);
 }
 
 .code-surface {
-  background-color: #1c1915;
-  color: #f6f3ec;
+  background-color: #0f1115;
+  color: #e6e8eb;
 }
 
 .code-muted {
-  color: #c9c3b6;
+  color: #9aa0aa;
 }
 
 .code-line {
-  border-color: #6d675e;
+  border-color: #3a404a;
 }
 
 @layer base {
@@ -54,10 +228,6 @@ html.dark {
     background-color: var(--color-bg);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    background-image:
-      linear-gradient(to right, color-mix(in oklab, var(--color-line) 75%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in oklab, var(--color-line) 75%, transparent) 1px, transparent 1px);
-    background-size: 1.5rem 1.5rem;
   }
 
   button:not(:disabled),
@@ -78,7 +248,7 @@ html.dark {
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
 
@@ -88,6 +258,40 @@ html.dark {
     *::after {
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
+    }
+  }
+
+  @media print {
+    @page {
+      size: A4;
+      margin: 14mm 12mm;
+    }
+
+    header,
+    nav,
+    footer,
+    .no-print {
+      display: none !important;
+    }
+
+    body {
+      background: #fff;
+      color: #000;
+    }
+
+    .formula-band,
+    .result-panel {
+      break-inside: avoid;
+    }
+
+    .result-panel {
+      background: #fff;
+      color: #000;
+      border: 1px solid #999;
+    }
+
+    .result-muted {
+      color: #333;
     }
   }
 }

@@ -11,7 +11,7 @@ const cppLessons: Language = {
     en: "From the introduction through memory: syntax, types, control flow, arrays, structs, pointers and new/delete.",
   },
   run: {
-    fi: "g++ tiedosto.cpp -o ohjelma && ./ohjelma",
+    fi: "g++ file.cpp -o program && ./program",
     en: "g++ file.cpp -o program && ./program",
   },
   lessons: [
@@ -55,15 +55,15 @@ int main() {
       points: [
         { fi: "g++ on sekä kääntäjä että linkkeri. Pelkkä g++ tiedosto.cpp tekee molemmat.", en: "g++ is both the compiler and the linker. A plain g++ file.cpp does both." },
         { fi: "g++ -c tekee vain objektitiedoston. Ilman -c syntyy valmis ohjelma.", en: "g++ -c makes only an object file. Without -c you get a finished program." },
-        { fi: "-g jättää debuggaustiedon. gdb ./ohjelma käynnistää debuggerin.", en: "-g leaves debug information. gdb ./program starts the debugger." },
+        { fi: "-g jättää debuggaustiedon. gdb ./program käynnistää debuggerin.", en: "-g leaves debug information. gdb ./program starts the debugger." },
       ],
-      file: "komennot.sh",
-      code: `g++ -c ohjelma.cpp -o ohjelma.o
-g++ ohjelma.o -o ohjelma
-./ohjelma
+      file: "commands.sh",
+      code: `g++ -c program.cpp -o program.o
+g++ program.o -o program
+./program
 
-g++ -g ohjelma.cpp -o ohjelma
-gdb ./ohjelma`,
+g++ -g program.cpp -o program
+gdb ./program`,
       output: `(komentoja, ei ohjelman tulostetta)`,
       note: {
         fi: "Editori voi olla mikä tahansa, joka tallentaa pelkän tekstin. Käännösvirhe kertoo tiedoston ja rivinumeron.",
@@ -137,7 +137,7 @@ pisteet: 55`,
       code: `#include <iostream>
 
 int main() {
-    int credits = 55; // opintopisteet
+    int credits = 55; // credits
     std::cout << credits << "\\n";
     /* tätä ei ajeta
     std::cout << "piilossa\\n";
@@ -466,7 +466,7 @@ kierros 1`,
       topic: "ohjaus",
       title: { fi: "for-silmukka", en: "For loop" },
       blurb: {
-        fi: "for kokoaa alustuksen, testin ja askeleen yhteen otsikkoon. for (int x : lista) käy arvot, kun et tarvitse indeksiä.",
+        fi: "for kokoaa alustuksen, testin ja askeleen yhteen otsikkoon. for (int x : scores) käy arvot, kun et tarvitse indeksiä.",
         en: "for gathers the setup, the test and the step into one header. for (int x : list) walks the values when you do not need the index.",
       },
       points: [
@@ -822,10 +822,10 @@ int main() {
       points: [
         { fi: "#pragma once estää saman otsikon liittämisen kahdesti.", en: "#pragma once stops the same header from being included twice." },
         { fi: "Otsikkoon ei kuulu käyttävä main. main.cpp vain kutsuu rajapintaa.", en: "main does not belong in the header. main.cpp only calls the interface." },
-        { fi: "Käännä molemmat toteutukset: g++ opiskelija.cpp main.cpp -o ohjelma.", en: "Compile both implementation files: g++ opiskelija.cpp main.cpp -o ohjelma." },
+        { fi: "Käännä molemmat toteutukset: g++ student.cpp main.cpp -o program.", en: "Compile both implementation files: g++ student.cpp main.cpp -o program." },
       ],
-      file: "opiskelija.h",
-      code: `// opiskelija.h — rajapinta
+      file: "student.h",
+      code: `// student.h
 #pragma once
 
 struct Student {
@@ -834,15 +834,15 @@ struct Student {
 
 void add(Student& student, int points);
 
-// opiskelija.cpp — toteutus
-#include "opiskelija.h"
+// student.cpp
+#include "student.h"
 
 void add(Student& student, int points) {
     student.credits += points;
 }
 
 // main.cpp
-#include "opiskelija.h"
+#include "student.h"
 #include <iostream>
 
 int main() {
@@ -871,7 +871,7 @@ int main() {
         { fi: "addCredits ottaa tietueen viittauksena, koska sen pitää muuttaa kutsujan oliota.", en: "addCredits takes the record by reference, because it must change the caller's object." },
         { fi: "Tuntematon komento menee cerr-virtaan. Lista menee cout-virtaan.", en: "An unknown command goes to cerr. The list goes to cout." },
       ],
-      file: "rekisteri.cpp",
+      file: "register.cpp",
       code: `#include <iostream>
 #include <string>
 
@@ -969,7 +969,7 @@ int main() {
         { fi: "Konstruktori saa saman nimen kuin luokka ja alustaa kentät.", en: "The constructor has the same name as the class and initialises the fields." },
         { fi: "Metodia kutsutaan pisteellä: meter.volts().", en: "A method is called with a dot: meter.volts()." },
       ],
-      file: "luokka.cpp",
+      file: "class.cpp",
       code: `#include <iostream>
 
 class Meter {
@@ -1000,13 +1000,13 @@ int main() {
         { fi: "Polku on suhteessa käynnistyskansioon, ei lähdekoodin kansioon.", en: "The path is relative to the folder you started from, not the source folder." },
         { fi: "getline lukee rivin. Operaattori >> lukee seuraavan sanan tai luvun.", en: "getline reads a line. The >> operator reads the next word or number." },
       ],
-      file: "tiedosto.cpp",
+      file: "file.cpp",
       code: `#include <fstream>
 #include <iostream>
 #include <string>
 
 int main() {
-    std::ifstream in("mittaus.txt");
+    std::ifstream in("measurements.txt");
     if (!in) {
         std::cerr << "ei tiedostoa\\n";
         return 1;
@@ -1016,7 +1016,7 @@ int main() {
     std::cout << line << "\\n";
     return 0;
 }`,
-      output: `(mittaus.txt:n ensimmäinen rivi)`,
+      output: `(measurements.txt:n ensimmäinen rivi)`,
       tags: ["ifstream", "ofstream", "getline", "tiedosto", "file"],
     },
     {
@@ -1031,7 +1031,7 @@ int main() {
         { fi: "Ota kiinni viittauksella, älä kopiona.", en: "Catch by reference, not by copy." },
         { fi: "what() palauttaa tekstin, joka annettiin runtime_error-oliolle.", en: "what() returns the text given to the runtime_error." },
       ],
-      file: "poikkeus.cpp",
+      file: "exception.cpp",
       code: `#include <iostream>
 #include <stdexcept>
 

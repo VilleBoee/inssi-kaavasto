@@ -173,7 +173,7 @@ function FieldControl({
   const placeholder = input.placeholder ? t(locale, input.placeholder) : undefined;
   const inlineUnit = Boolean(unit && unit.length <= 8);
   const control =
-    "w-full rounded-md border border-line bg-bg text-base text-ink outline-none transition-colors duration-200";
+    "w-full rounded-md border border-control bg-paper text-base text-ink transition-colors duration-200";
   return (
     <label className="flex flex-col gap-1.5">
       <span className="text-sm font-medium">
@@ -237,7 +237,12 @@ export function KaavastoApp() {
   const [locale, setUiLocale] = useState<Locale>("fi");
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     const stored = localStorage.getItem("kaavasto:theme");
-    const next = stored === "dark" ? "dark" : "light";
+    const next =
+      stored === "dark" || stored === "light"
+        ? stored
+        : window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
     document.documentElement.classList.toggle("dark", next === "dark");
     return next;
   });
@@ -351,8 +356,26 @@ export function KaavastoApp() {
     localStorage.setItem("kaavasto:theme", theme);
   }, [theme, ready]);
 
+  useEffect(() => {
+    if (!clearAsk) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setClearAsk(false);
+    };
+    window.addEventListener("keydown", onKey);
+    const timer = window.setTimeout(() => document.getElementById("clear-cancel")?.focus(), 0);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.clearTimeout(timer);
+    };
+  }, [clearAsk]);
+
   function clearStorage() {
-    localStorage.clear();
+    const keys: string[] = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith("kaavasto:")) keys.push(key);
+    }
+    for (const key of keys) localStorage.removeItem(key);
     setFavorites([]);
     setRecent([]);
     setDrafts({});
@@ -533,20 +556,15 @@ export function KaavastoApp() {
     <LocaleContext.Provider value={locale}>
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-line bg-paper">
-        <div className={clsx("mx-auto flex w-full min-w-0 flex-col gap-2 px-4 py-2 lg:gap-3 lg:px-8 lg:py-4", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
+        <div className={clsx("mx-auto flex w-full min-w-0 flex-col gap-2 px-4 py-2 lg:px-8", showWorkspace ? "max-w-screen-2xl" : "max-w-6xl")}>
           <div className="flex min-w-0 items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2 lg:gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-md bg-ink font-mono text-lg text-paper lg:size-11 lg:text-xl">ƒ</span>
+              <span className="brand-mark grid size-9 shrink-0 place-items-center rounded-md font-mono text-lg lg:size-11 lg:text-xl">ƒ</span>
               <div className="min-w-0">
-                <p className="hidden truncate font-mono text-[10px] tracking-widest text-accent uppercase sm:block lg:text-xs">
-                  {programming ? t(locale, "Ohjelmoinnin esimerkit") : t(locale, "Insinöörin kaavakirja")}
-                </p>
-                <h1 className="flex min-w-0 items-baseline gap-x-2 text-xl leading-none font-semibold lg:text-2xl">
-                  Kaavasto
-                  <span className="hidden sm:contents">
-                    <UpdatedStamp locale={locale} />
-                  </span>
-                </h1>
+                <h1 className="truncate text-xl leading-none font-semibold lg:text-2xl">Kaavasto</h1>
+                <span className="hidden sm:block">
+                  <UpdatedStamp locale={locale} />
+                </span>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 lg:gap-3">
@@ -558,7 +576,7 @@ export function KaavastoApp() {
                   onClick={() => setWsOpen((open) => !open)}
                   className={clsx(
                     "hidden h-11 items-center gap-2 rounded-md border px-3 text-sm font-medium lg:flex",
-                    wsOpen ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
+                    wsOpen ? "border-primary bg-primary-soft text-primary" : "border-line bg-paper text-ink",
                   )}
                 >
                   <SquarePen className="size-4" aria-hidden="true" />
@@ -581,8 +599,8 @@ export function KaavastoApp() {
                     aria-pressed={locale === code}
                     onClick={() => setUiLocale(code)}
                     className={clsx(
-                      "h-8 rounded px-2 font-mono text-sm lg:h-11 lg:px-3",
-                      locale === code ? "bg-ink text-paper" : "text-muted",
+                      "h-11 rounded px-3 font-mono text-sm",
+                      locale === code ? "bg-primary text-white" : "text-muted",
                     )}
                   >
                     {code.toUpperCase()}
@@ -595,7 +613,7 @@ export function KaavastoApp() {
                   aria-pressed={theme === "light"}
                   aria-label={t(locale, "Vaalea")}
                   onClick={() => setTheme("light")}
-                  className={clsx("grid size-8 place-items-center rounded lg:size-11", theme === "light" ? "bg-ink text-paper" : "text-muted")}
+                  className={clsx("grid size-11 place-items-center rounded", theme === "light" ? "bg-primary text-white" : "text-muted")}
                 >
                   <Sun className="size-4" aria-hidden="true" />
                 </button>
@@ -604,7 +622,7 @@ export function KaavastoApp() {
                   aria-pressed={theme === "dark"}
                   aria-label={t(locale, "Tumma")}
                   onClick={() => setTheme("dark")}
-                  className={clsx("grid size-8 place-items-center rounded lg:size-11", theme === "dark" ? "bg-ink text-paper" : "text-muted")}
+                  className={clsx("grid size-11 place-items-center rounded", theme === "dark" ? "bg-primary text-white" : "text-muted")}
                 >
                   <Moon className="size-4" aria-hidden="true" />
                 </button>
@@ -644,7 +662,7 @@ export function KaavastoApp() {
               onClick={() => showSection("kaavasto")}
               className={clsx(
                 "flex h-9 items-center justify-center gap-2 rounded-md border text-sm font-medium lg:h-11",
-                !programming ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
+                !programming ? "border-primary bg-primary-soft text-primary" : "border-line bg-paper text-ink",
               )}
             >
               <BookOpen className="size-4" aria-hidden="true" />
@@ -657,7 +675,7 @@ export function KaavastoApp() {
               onClick={() => showSection("ohjelmointi")}
               className={clsx(
                 "flex h-9 items-center justify-center gap-2 rounded-md border text-sm font-medium lg:h-11",
-                programming ? "border-ink bg-ink text-paper" : "border-line bg-bg text-ink",
+                programming ? "border-primary bg-primary-soft text-primary" : "border-line bg-paper text-ink",
               )}
             >
               <Code2 className="size-4" aria-hidden="true" />
@@ -669,25 +687,14 @@ export function KaavastoApp() {
             <Search className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted" aria-hidden="true" />
             <input
               id="kaavasto-search"
-              className="h-10 w-full min-w-0 rounded-md border border-line bg-bg pr-4 pl-11 text-base text-ink outline-none lg:h-12"
+              className="h-11 w-full min-w-0 rounded-md border border-control bg-paper pr-4 pl-11 text-base text-ink"
               placeholder={
                 programming
                   ? t(locale, "Hae: silmukka, lista, osoitin…")
                   : t(locale, "Hae: newton, tsiolkovski, aliverkko, epävarmuus…")
               }
               value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                if (activeId) closeFormula();
-                if (progLesson) {
-                  setProgLesson(null);
-                  window.history.replaceState(
-                    null,
-                    "",
-                    `${pathOf()}${progListHash(progLang, progTopic)}`,
-                  );
-                }
-              }}
+              onChange={(event) => setQuery(event.target.value)}
             />
           </label>
         </div>
@@ -698,7 +705,7 @@ export function KaavastoApp() {
             <h2 id="clear-storage-title" className="text-lg font-semibold">{t(locale, "Haluatko poistaa tallennetut tiedot?")}</h2>
             <p className="mt-2 text-sm text-pretty text-muted">{t(locale, "Suosikit, kieli ja työtilat poistuvat tästä selaimesta.")}</p>
             <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => setClearAsk(false)} className="h-11 rounded-md border border-line bg-bg px-3 text-sm">
+              <button type="button" id="clear-cancel" onClick={() => setClearAsk(false)} className="h-11 rounded-md border border-control bg-paper px-3 text-sm">
                 {t(locale, "Peruuta")}
               </button>
               <button
@@ -707,7 +714,7 @@ export function KaavastoApp() {
                   clearStorage();
                   setClearAsk(false);
                 }}
-                className="h-11 rounded-md bg-ink px-3 text-sm font-medium text-paper"
+                className="h-11 rounded-md bg-primary px-3 text-sm font-medium text-white"
               >
                 {t(locale, "Poista")}
               </button>
@@ -737,7 +744,7 @@ export function KaavastoApp() {
               </button>
             </div>
           ) : null}
-          <ul className={clsx("flex flex-col gap-1", navDocked && "sticky top-52 max-h-[calc(100dvh-14rem)] overflow-y-auto")}>
+          <ul className={clsx("flex flex-col gap-1", navDocked && "sticky top-28 max-h-[calc(100dvh-8rem)] overflow-y-auto")}>
             {programming
               ? [{ id: "kaikki", label: "Kaikki", short: "", count: lessonCount() }, ...LANGUAGES.map((language) => ({
                   id: language.id,
@@ -755,7 +762,7 @@ export function KaavastoApp() {
                         onClick={() => selectProgLang(item.id)}
                         className={clsx(
                           "flex h-11 w-full items-center gap-2 rounded-md px-3 text-left text-sm transition-colors duration-200",
-                          selected ? "bg-ink text-paper" : "text-ink hover:bg-paper",
+                          selected ? "bg-primary-soft font-medium text-primary" : "text-ink hover:bg-paper",
                         )}
                       >
                         {item.id === "kaikki" ? (
@@ -764,7 +771,7 @@ export function KaavastoApp() {
                           <LanguageGlyph id={item.id} />
                         )}
                         <span className="flex-1">{item.id === "kaikki" ? t(locale, item.label) : item.label}</span>
-                        <span className={clsx("font-mono text-xs tabular-nums", selected ? "text-ink-soft" : "text-muted")}>{item.count}</span>
+                        <span className={clsx("font-mono text-xs tabular-nums", selected ? "text-primary" : "text-muted")}>{item.count}</span>
                       </button>
                       {topics.length > 0 ? (
                         <ul className="mt-1 mb-2 ml-5 flex flex-col gap-0.5 border-l border-line pl-2">
@@ -778,7 +785,7 @@ export function KaavastoApp() {
                                   onClick={() => selectProgTopic(topic.id)}
                                   className={clsx(
                                     "flex h-10 w-full items-center gap-2 rounded-md px-2 text-left text-sm",
-                                    topicOn ? "bg-accent-soft font-medium text-ink" : "text-muted hover:bg-paper hover:text-ink",
+                                    topicOn ? "bg-primary-soft font-medium text-ink" : "text-muted hover:bg-paper hover:text-ink",
                                   )}
                                 >
                                   <span className="flex-1">{topic.label}</span>
@@ -808,12 +815,12 @@ export function KaavastoApp() {
                         onClick={() => selectFilter(item.id)}
                         className={clsx(
                           "flex h-11 w-full items-center gap-2 rounded-md px-3 text-left text-sm transition-colors duration-200",
-                          selected ? "bg-ink text-paper" : "text-ink hover:bg-paper",
+                          selected ? "bg-primary-soft font-medium text-primary" : "text-ink hover:bg-paper",
                         )}
                       >
                         <CategoryGlyph id={item.id} />
                         <span className="flex-1">{t(locale, item.label)}</span>
-                        <span className={clsx("font-mono text-xs tabular-nums", selected ? "text-ink-soft" : "text-muted")}>{count}</span>
+                        <span className={clsx("font-mono text-xs tabular-nums", selected ? "text-primary" : "text-muted")}>{count}</span>
                       </button>
                       {selected && item.id !== "kaikki" && item.id !== "suosikit" ? (
                         <ul className="mt-1 mb-2 ml-5 flex flex-col gap-0.5 border-l border-line pl-2">
@@ -827,7 +834,7 @@ export function KaavastoApp() {
                                   onClick={() => selectSubFilter(sub.id)}
                                   className={clsx(
                                     "flex h-10 w-full items-center gap-2 rounded-md px-2 text-left text-sm",
-                                    subOn ? "bg-accent-soft font-medium text-ink" : "text-muted hover:bg-paper hover:text-ink",
+                                    subOn ? "bg-primary-soft font-medium text-ink" : "text-muted hover:bg-paper hover:text-ink",
                                   )}
                                 >
                                   <span className="flex-1">{subcategoryLabel(sub.id, locale)}</span>
@@ -1044,7 +1051,7 @@ function Library({
             : t(locale, "Suosikeissa ei ole vielä kaavoja. Merkitse tähti kaavan kohdalle.")}
         </p>
         {query.trim() ? (
-          <button type="button" onClick={onClear} className="mt-5 h-11 rounded-md bg-accent px-4 text-sm font-medium text-accent-ink">
+          <button type="button" onClick={onClear} className="mt-5 h-11 rounded-md bg-primary px-4 text-sm font-medium text-white">
             {t(locale, "Tyhjennä haku")}
           </button>
         ) : null}
@@ -1081,7 +1088,7 @@ function Library({
               key={item.id}
               type="button"
               onClick={() => onOpen(item.id)}
-              className="h-11 rounded-md border border-line bg-paper px-3 text-sm hover:border-accent"
+              className="h-11 rounded-md border border-line bg-paper px-3 text-sm hover:border-primary"
             >
               {t(locale, item.name)}
             </button>
@@ -1095,7 +1102,7 @@ function Library({
       <section key={group.key}>
         <h2 className="mb-3 text-sm font-medium">
           <span className="text-muted">{group.category}</span>
-          <span className="px-2 text-accent" aria-hidden="true">
+          <span className="px-2 text-primary" aria-hidden="true">
             •
           </span>
           {group.sub}
@@ -1117,11 +1124,11 @@ function Library({
                   onClick={() => onToggleFavorite(item.id)}
                   className="absolute top-2 right-2 z-10 grid size-11 place-items-center rounded-md"
                 >
-                  <Star className={favorite ? "size-5 fill-accent text-accent" : "size-5 text-muted"} aria-hidden="true" />
+                  <Star className={favorite ? "size-5 fill-primary text-primary" : "size-5 text-muted"} aria-hidden="true" />
                 </button>
                 <button type="button" onClick={() => onOpen(item.id)} className="flex w-full flex-col gap-2 p-4 pr-14 text-left">
                   <span className="text-lg leading-snug font-semibold">{name}</span>
-                  <span className="font-mono text-sm break-words text-ink">{item.expression}</span>
+                  <span className="font-mono text-base leading-snug break-words text-ink">{item.expression}</span>
                   <span className="text-sm text-pretty text-muted">{t(locale, item.blurb)}</span>
                 </button>
               </li>
@@ -1178,12 +1185,12 @@ function Worksheet({
           onClick={onToggleFavorite}
           className="grid size-11 place-items-center rounded-md border border-line bg-paper"
         >
-          <Star className={favorite ? "size-5 fill-accent text-accent" : "size-5 text-muted"} aria-hidden="true" />
+          <Star className={favorite ? "size-5 fill-primary text-primary" : "size-5 text-muted"} aria-hidden="true" />
         </button>
       </div>
 
       <header className="flex flex-col gap-3">
-        <p className="font-mono text-xs tracking-widest text-accent uppercase">
+        <p className="font-mono text-xs tracking-widest text-primary uppercase">
           {t(locale, categoryLabel(formula.category))}
           <span className="px-2" aria-hidden="true">
             •
@@ -1191,7 +1198,7 @@ function Worksheet({
           {subcategoryLabel(formula.subcategory, locale)}
         </p>
         <h2 className="text-3xl font-semibold tracking-tight">{t(locale, formula.name)}</h2>
-        <p className="rounded-md border border-line bg-paper px-4 py-3 font-mono text-sm break-words">{formula.expression}</p>
+        <p className="formula-band rounded-md px-4 py-4 font-mono text-[1.375rem] leading-snug break-words md:text-[1.625rem]">{formula.expression}</p>
         <button type="button" onClick={onAddReference} className="h-11 self-start rounded-md border border-line bg-paper px-3 text-sm">
           {t(locale, "Lisää omaan työtilaan")}
         </button>
@@ -1217,10 +1224,10 @@ function Worksheet({
 
       {formula.tables?.map((table) => (
         <section key={table.title} className="overflow-hidden rounded-lg border border-line bg-paper">
-          <h3 className="border-b border-line px-4 py-3 font-mono text-xs tracking-widest text-accent uppercase">{t(locale, table.title)}</h3>
+          <h3 className="border-b border-line px-4 py-3 font-mono text-xs tracking-widest text-primary uppercase">{t(locale, table.title)}</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-ink text-paper">
+              <thead className="bg-bg text-ink">
                 <tr>
                   {table.columns.map((column) => (
                     <th key={column} className="px-3 py-3 font-medium whitespace-nowrap">
@@ -1249,18 +1256,18 @@ function Worksheet({
       ))}
 
       {!reference ? (
-        <section aria-live="polite" className="overflow-hidden rounded-lg bg-ink text-paper">
-          <div className="flex items-center justify-between gap-3 border-b border-ink-soft px-4 py-3">
-            <h3 className="font-mono text-xs tracking-widest text-ink-soft uppercase">{t(locale, "Tulos")}</h3>
+        <section className="result-panel overflow-hidden rounded-lg">
+          <div className="result-line flex items-center justify-between gap-3 border-b px-4 py-3">
+            <h3 className="result-muted font-mono text-xs tracking-widest uppercase">{t(locale, "Tulos")}</h3>
             {result.status === "ok" ? (
               <div className="flex flex-wrap justify-end gap-2">
-                <button type="button" onClick={onSaveCalculation} className="flex h-11 items-center gap-2 rounded-md bg-accent px-3 text-sm font-medium text-accent-ink">
+                <button type="button" onClick={onSaveCalculation} className="flex h-11 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-white">
                   {t(locale, "Tallenna työtilaan")}
                 </button>
                 <button
                   type="button"
                   onClick={onCopy}
-                  className="flex h-11 items-center gap-2 rounded-md border border-ink-soft px-3 text-sm text-paper"
+                  className="result-line flex h-11 items-center gap-2 rounded-md border px-3 text-sm"
                 >
                   {copied ? <Check className="size-4" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
                   {copied ? t(locale, "Kopioitu") : t(locale, "Kopioi")}
@@ -1269,26 +1276,26 @@ function Worksheet({
             ) : null}
           </div>
           {result.status === "ok" ? (
-            <ul className="px-4">
+            <ul aria-live="polite" className="px-4">
               {result.rows.map((line) => (
-                <li key={line.id} className="flex items-start justify-between gap-4 border-b border-ink-soft py-3 last:border-b-0">
-                  <span className="w-2/5 shrink-0 text-sm text-ink-soft">{t(locale, line.label)}</span>
+                <li key={line.id} className="result-line flex items-start justify-between gap-4 border-b py-3 last:border-b-0">
+                  <span className="result-muted w-2/5 shrink-0 text-sm">{t(locale, line.label)}</span>
                   <span
                     className={clsx(
                       "min-w-0 text-right font-mono break-all tabular-nums",
-                      line.emphasis ? "text-lg font-medium text-paper" : "text-sm text-paper",
+                      line.emphasis ? "text-lg font-medium" : "text-sm",
                     )}
                   >
                     {t(locale, line.value)}
-                    {line.unit ? <span className="text-ink-soft"> {t(locale, line.unit)}</span> : null}
+                    {line.unit ? <span className="result-muted"> {t(locale, line.unit)}</span> : null}
                   </span>
                 </li>
               ))}
             </ul>
           ) : result.status === "error" ? (
-            <p className="px-4 py-5 text-sm text-accent-soft">{t(locale, result.message)}</p>
+            <p className="result-error px-4 py-5 text-sm">{t(locale, result.message)}</p>
           ) : (
-            <p className="px-4 py-5 text-sm text-ink-soft">{t(locale, "Täytä kentät, niin tulos lasketaan.")}</p>
+            <p className="result-muted px-4 py-5 text-sm">{t(locale, "Täytä kentät, niin tulos lasketaan.")}</p>
           )}
         </section>
       ) : null}

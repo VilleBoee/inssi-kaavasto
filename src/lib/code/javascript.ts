@@ -302,7 +302,7 @@ console.log(credits);`,
         { fi: "Oliossa nimi vastaa kenttää. Kaksoispiste antaa sille toisen muuttujanimen.", en: "In an object the name matches the field. A colon gives it a different variable name." },
         { fi: "Oletus kirjoitetaan yhtäsuuruusmerkillä purun sisään.", en: "A default is written with an equals sign inside the pattern." },
       ],
-      file: "purku.js",
+      file: "destructure.js",
       code: `const student = { name: "Aino", credits: 55 };
 const { name, credits } = student;
 const scores = [4, 8, 15];
@@ -325,7 +325,7 @@ console.log(first);`,
         { fi: "Sisempi samanniminen muuttuja peittää ulomman.", en: "An inner variable with the same name hides the outer one." },
         { fi: "Parametri ei näy funktion ulkopuolelle.", en: "A parameter is not visible outside the function." },
       ],
-      file: "nakyvyys.js",
+      file: "scope.js",
       code: `function makeAdder(start) {
   return (step) => start + step;
 }
@@ -346,7 +346,7 @@ console.log(add(5));`,
         { fi: "error.message on se teksti, jonka annoit Error-oliolle.", en: "error.message is the text you gave the Error object." },
         { fi: "Tyhjä catch piilottaa vian. Kirjoita, mitä tapahtuu seuraavaksi.", en: "An empty catch hides the fault. Write what happens next." },
       ],
-      file: "virheet.js",
+      file: "errors.js",
       code: `function readCount(text) {
   const n = Number(text);
   if (Number.isNaN(n)) throw new Error("ei luku");
@@ -432,7 +432,7 @@ console.log(area(3, 4));`,
   const form = document.querySelector("form");
   form?.addEventListener("submit", (event) => {
     event.preventDefault();
-    console.log(new FormData(form).get("jannite"));
+    console.log(new FormData(form).get("voltage"));
   });
 }`,
       output: `aja selaimen sivulla`,

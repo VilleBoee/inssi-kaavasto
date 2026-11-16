@@ -26,7 +26,7 @@ const html: Language = {
         { fi: "html, head ja body ovat sivun runko.", en: "html, head and body are the skeleton of the page." },
         { fi: "title näkyy selaimen välilehdessä, ei sivun keskellä.", en: "title shows on the browser tab, not in the middle of the page." },
       ],
-      file: "sivu.html",
+      file: "page.html",
       code: `<!DOCTYPE html>
 <html lang="fi">
   <head>
@@ -66,7 +66,7 @@ Ensimmäinen sivu.`,
         { fi: "Käytä yhtä h1-otsikkoa sivua kohti.", en: "Use one h1 heading per page." },
         { fi: "h2 ja h3 ovat alaotsikoita, eivät isompaa fonttia.", en: "h2 and h3 are subheadings, not a bigger font." },
       ],
-      file: "teksti.html",
+      file: "text.html",
       code: `<h1>Laboratorio</h1>
 <p>Mittaa jännite ennen kuin vaihdat vastuksen.</p>
 <h2>Välineet</h2>
@@ -101,7 +101,7 @@ A **paragraph** §p§ is one thought. The browser adds space between paragraphs.
         { fi: "href=\"ohje.html\" on samassa kansiossa.", en: "href=\"ohje.html\" is in the same folder." },
         { fi: "https:// aloittaa toisen sivuston osoitteen.", en: "https:// starts an address on another site." },
       ],
-      file: "linkki.html",
+      file: "link.html",
       code: `<p>
   Lue
   <a href="ohje.html">mittausohje</a>
@@ -138,7 +138,7 @@ An address can be relative or full. §ohje.html§ means a file in the same folde
         { fi: "img ei tarvitse lopputunnistetta.", en: "img does not need a closing tag." },
         { fi: "alt ei ole kuvateksti sivulla. Se on varateksti.", en: "alt is not a caption on the page. It is the fallback text." },
       ],
-      file: "kuva.html",
+      file: "image.html",
       code: `<img src="kytkenta.png" alt="Sarjaankytketty vastus ja ledi">
 <p>Kytkentäkaavio.</p>`,
       output: `[kuva: Sarjaankytketty vastus ja ledi]
@@ -169,7 +169,7 @@ An image's file size is bytes. A large image slows the page, because the browser
         { fi: "li on aina ul- tai ol-tunnisteen sisällä.", en: "li is always inside a ul or ol tag." },
         { fi: "Älä tee listaa pelkillä rivinvaihdoilla.", en: "Do not fake a list with line breaks." },
       ],
-      file: "lista.html",
+      file: "list.html",
       code: `<h2>Välineet</h2>
 <ul>
   <li>Yleismittari</li>
@@ -212,10 +212,10 @@ Each item is its own §li§. Do not put two things in one item with a line break
         { fi: "for ja id yhdistävät nimikkeen kenttään.", en: "for and id connect the label to the field." },
         { fi: "type=\"number\" pyytää lukua, type=\"text\" tekstiä.", en: "type=\"number\" asks for a number, type=\"text\" for text." },
       ],
-      file: "lomake.html",
+      file: "form.html",
       code: `<form>
-  <label for="jannite">Jännite (V)</label>
-  <input id="jannite" name="jannite" type="number">
+  <label for="voltage">Jännite (V)</label>
+  <input id="voltage" name="voltage" type="number">
   <button type="submit">Laske</button>
 </form>`,
       output: `Jännite (V)  [    ]
@@ -246,7 +246,7 @@ Each item is its own §li§. Do not put two things in one item with a line break
         { fi: "main on sivun varsinainen sisältö, kerran sivulla.", en: "main is the real content, once per page." },
         { fi: "div ei kerro merkitystä. Käytä sitä vasta, kun sopivampaa tunnistetta ei ole.", en: "div has no meaning. Use it only when no better tag fits." },
       ],
-      file: "rakenne.html",
+      file: "layout.html",
       code: `<header>
   <p>Kurssi</p>
   <h1>Tasavirtapiiri</h1>
@@ -291,7 +291,7 @@ Päivitetty tänään.`,
         { fi: "Älä käytä taulukkoa sivun asetteluun.", en: "Do not use a table to lay out the page." },
         { fi: "caption on taulukon otsikko, jonka ruudunlukija lukee ensin.", en: "caption is the table's title, which a screen reader reads first." },
       ],
-      file: "taulukko.html",
+      file: "table.html",
       code: `<table>
   <caption>Mittaukset</caption>
   <thead>
@@ -366,19 +366,19 @@ Piiri B  5 V`,
         { fi: "fieldset ja legend ryhmittelevät samaan asiaan kuuluvat kentät.", en: "fieldset and legend group fields that belong to the same thing." },
         { fi: "required estää lähetyksen, jos kenttä on tyhjä.", en: "required blocks sending when the field is empty." },
       ],
-      file: "syotteet.html",
+      file: "inputs.html",
       code: `<form>
-  <label for="nimi">Nimi</label>
-  <input id="nimi" name="nimi" type="text" required>
-  <label for="paiva">Päivä</label>
-  <input id="paiva" name="paiva" type="date">
-  <label for="kurssi">Kurssi</label>
-  <select id="kurssi" name="kurssi">
+  <label for="name">Nimi</label>
+  <input id="name" name="name" type="text" required>
+  <label for="date">Päivä</label>
+  <input id="date" name="date" type="date">
+  <label for="course">Kurssi</label>
+  <select id="course" name="course">
     <option value="ohm">Ohm</option>
     <option value="verkko">Verkko</option>
   </select>
-  <label for="huomio">Huomio</label>
-  <textarea id="huomio" name="huomio"></textarea>
+  <label for="note">Huomio</label>
+  <textarea id="note" name="note"></textarea>
   <button type="submit">Tallenna</button>
 </form>`,
       output: `Nimi [____]

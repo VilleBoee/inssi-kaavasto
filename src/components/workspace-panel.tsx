@@ -59,7 +59,7 @@ function CalcHelp() {
       <div className="flex flex-col gap-4 border-t border-line px-3 py-3">
         {CALC_HELP.map((group) => (
           <section key={group.title} className="flex flex-col gap-2">
-            <h3 className="font-mono text-xs tracking-widest text-accent uppercase">{t(locale, group.title)}</h3>
+            <h3 className="font-mono text-xs tracking-widest text-primary uppercase">{t(locale, group.title)}</h3>
             <ul className="flex flex-col gap-1.5">
               {group.rows.map(([example, label]) => (
                 <li key={example} className="flex items-baseline justify-between gap-3 text-sm">
@@ -325,7 +325,7 @@ export function WorkspacePanel({
             const next = createWorkspace(locale === "fi" ? `Tehtävä ${file.workspaces.length + 1}` : `Task ${file.workspaces.length + 1}`);
             onFile({ version: 1, activeId: next.id, workspaces: [...file.workspaces, next] });
           }}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-ink text-sm font-medium text-paper"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-white"
         >
           <Plus className="size-4" aria-hidden="true" />
           {t(locale, "Lisää työtila")}
@@ -334,10 +334,10 @@ export function WorkspacePanel({
           {file.workspaces.map((item) => {
             const selected = item.id === workspace.id;
             return (
-              <li key={item.id} className={clsx("relative rounded-md border", selected ? "border-ink bg-ink" : "border-line bg-bg")}>
+              <li key={item.id} className={clsx("relative rounded-md border", selected ? "border-primary bg-primary-soft" : "border-line bg-bg")}>
                 {selected ? (
                   <input
-                    className="h-11 w-full bg-transparent pr-12 pl-3 text-base text-paper outline-none"
+                    className="h-11 w-full bg-transparent pr-12 pl-3 text-base text-ink"
                     value={item.name}
                     aria-label={t(locale, "Työtilan nimi")}
                     onChange={(event) => replace({ ...item, name: event.target.value })}
@@ -365,7 +365,7 @@ export function WorkspacePanel({
                   }}
                   className="absolute top-0 right-0 grid size-11 place-items-center"
                 >
-                  <X className={clsx("size-4", selected ? "text-paper" : "text-muted")} aria-hidden="true" />
+                  <X className={clsx("size-4", selected ? "text-ink" : "text-muted")} aria-hidden="true" />
                 </button>
               </li>
             );
@@ -383,7 +383,7 @@ export function WorkspacePanel({
                 type="button"
                 aria-pressed={workspace.angle === angle}
                 onClick={() => replace({ ...workspace, angle })}
-                className={clsx("h-11 flex-1 rounded text-sm", workspace.angle === angle ? "bg-ink text-paper" : "text-muted")}
+                className={clsx("h-11 flex-1 rounded text-sm", workspace.angle === angle ? "bg-primary text-white" : "text-muted")}
               >
                 {angle === "deg" ? t(locale, "Asteet") : t(locale, "Radiaanit")}
               </button>
@@ -454,7 +454,7 @@ export function WorkspacePanel({
           <button
             type="button"
             onClick={() => patch((current) => ({ ...current, blocks: [...current.blocks, { id: createId(), kind: "calc", expr: "" }] }))}
-            className="flex h-11 items-center gap-2 rounded-md bg-ink px-3 text-sm text-paper"
+            className="flex h-11 items-center gap-2 rounded-md bg-primary px-3 text-sm text-white"
           >
             <Plus className="size-4" aria-hidden="true" />
             {t(locale, "Lisää lasku")}
@@ -489,7 +489,7 @@ export function WorkspacePanel({
               onChange={(event) => setImportText(event.target.value)}
               aria-label={t(locale, "Tuo data")}
             />
-            <button type="button" onClick={importBase64} className="h-11 rounded-md bg-accent px-3 text-sm font-medium text-accent-ink">
+            <button type="button" onClick={importBase64} className="h-11 rounded-md bg-primary px-3 text-sm font-medium text-white">
               {t(locale, "Tuo työtilat")}
             </button>
           </div>
@@ -538,13 +538,13 @@ function CalcRow({
       {result?.ok && result.bindings && result.bindings.length > 1 ? (
         <ul className="flex flex-col gap-1">
           {result.bindings.map((item) => (
-            <li key={item.name} className="font-mono text-lg font-medium text-accent tabular-nums">
+            <li key={item.name} className="font-mono text-lg font-medium text-primary tabular-nums">
               {item.name} = {formatNum(item.value)}
             </li>
           ))}
         </ul>
       ) : result?.ok ? (
-        <p className="font-mono text-lg font-medium text-accent tabular-nums">
+        <p className="font-mono text-lg font-medium text-primary tabular-nums">
           {result.name ? `${result.name} = ` : "= "}
           {formatNum(result.value)}
         </p>
@@ -573,7 +573,7 @@ function CalcRow({
           </button>
         </div>
       ) : null}
-      {result && !result.ok && result.error !== "empty" ? <p className="text-sm text-pretty text-accent">{errorText(locale, result.error, result.detail)}</p> : null}
+      {result && !result.ok && result.error !== "empty" ? <p className="text-sm text-pretty text-primary">{errorText(locale, result.error, result.detail)}</p> : null}
     </div>
   );
 }
@@ -598,7 +598,7 @@ function FormulaCard({
   return (
     <div className="flex flex-col gap-3">
       <div>
-        <p className="font-mono text-xs tracking-widest text-accent uppercase">
+        <p className="font-mono text-xs tracking-widest text-primary uppercase">
           {t(locale, block.kind === "reference" ? "Kaava" : "Laskettava kaava")}
           <span className="px-2" aria-hidden="true">
             •
@@ -649,7 +649,7 @@ function FormulaCard({
               })}
             </ul>
           ) : computed?.status === "error" ? (
-            <p className="text-sm text-accent">{t(locale, computed.message)}</p>
+            <p className="text-sm text-primary">{t(locale, computed.message)}</p>
           ) : (
             <p className="text-sm text-muted">{t(locale, "Täytä kentät, niin tulos lasketaan.")}</p>
           )}
@@ -665,7 +665,7 @@ function FormulaCard({
 function ValueField({ field, value, onChange }: { field: FormulaInput; value: string; onChange: (value: string) => void }) {
   const locale = useContext(LocaleContext);
   const unit = field.unit ? t(locale, field.unit) : "";
-  const control = "w-full rounded-md border border-line bg-paper text-base text-ink outline-none";
+  const control = "w-full rounded-md border border-control bg-paper text-base text-ink";
   return (
     <label className="flex flex-col gap-1.5">
       <span className="text-sm font-medium">
@@ -817,7 +817,7 @@ function VariableField({ name, unit, onChange }: { name: string; unit: string; o
         spellCheck={false}
         onChange={(event) => onChange(event.target.value)}
       />
-      {invalid ? <span className="text-accent">{t(locale, "Tätä nimeä ei voi käyttää muuttujana.")}</span> : null}
+      {invalid ? <span className="text-primary">{t(locale, "Tätä nimeä ei voi käyttää muuttujana.")}</span> : null}
     </label>
   );
 }

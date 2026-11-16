@@ -69,14 +69,14 @@ function Inline({ text }: { text: string }) {
         if (piece.kind === "italic") return <em key={index}>{piece.value}</em>;
         if (piece.kind === "code") {
           return (
-            <code key={index} className="rounded bg-bg px-1 font-mono text-sm text-accent">
+            <code key={index} className="rounded bg-bg px-1 font-mono text-sm text-primary">
               {piece.value}
             </code>
           );
         }
         if (piece.kind === "term") {
           return (
-            <span key={index} className="font-medium text-accent">
+            <span key={index} className="font-medium text-primary">
               {piece.value}
             </span>
           );
@@ -84,7 +84,7 @@ function Inline({ text }: { text: string }) {
         if (piece.kind === "link") {
           if (!/^[a-z0-9-]+$/.test(piece.id)) return <span key={index}>{piece.label}</span>;
           return (
-            <a key={index} href={`#${piece.id}`} className="font-medium text-accent underline decoration-accent/40 underline-offset-2">
+            <a key={index} href={`#${piece.id}`} className="font-medium text-primary underline decoration-primary/40 underline-offset-2">
               {piece.label}
             </a>
           );
@@ -107,7 +107,7 @@ export function RichText({ text, className }: { text: string; className?: string
         const callout = block.startsWith(">> ");
         const body = callout ? block.slice(3) : block;
         return (
-          <p key={index} className={callout ? "rounded-md border-l-4 border-accent bg-accent-soft px-3 py-2 text-ink" : undefined}>
+          <p key={index} className={callout ? "rounded-md border-l-4 border-primary bg-primary-soft px-3 py-2 text-ink" : undefined}>
             <Inline text={body} />
           </p>
         );

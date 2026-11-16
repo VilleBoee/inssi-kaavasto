@@ -221,12 +221,12 @@ The function receives an event object. §event.target§ is the element that was 
   fetch: {
     fi: `**fetch** pyytää osoitteen ja palauttaa Promisen. §await fetch(url)§ antaa vastausolion, ei vielä dataa. §await response.json()§ lukee rungon JSONiksi. Tarkista §response.ok§ ennen kuin luet runkoa. Virhekoodi 404 ei heitä poikkeusta.
 
-Osoite on merkkijono. Sama palvelin voi olla suhteellinen polku §/api/opiskelijat§. Toinen palvelin vaatii, että palvelin sallii kutsun. Selain estää sen muuten. Tässä näkymässä verkkoon ei pääse, joten oikea fetch kuuluu selaimeen.
+Osoite on merkkijono. Sama palvelin voi olla suhteellinen polku §/api/students§. Toinen palvelin vaatii, että palvelin sallii kutsun. Selain estää sen muuten. Tässä näkymässä verkkoon ei pääse, joten oikea fetch kuuluu selaimeen.
 
 >> Älä jätä await-sanaa pois kummastakaan vaiheesta. Ilman ensimmäistä näet Promisen. Ilman toista näet vastausolion, jonka kentissä ei ole vielä opiskelijan nimeä. Molemmat vaiheet voivat epäonnistua, joten ne kuuluvat samaan try-lohkoon.`,
     en: `**fetch** requests an address and returns a Promise. §await fetch(url)§ gives a response object, not the data yet. §await response.json()§ reads the body as JSON. Check §response.ok§ before you read the body. A 404 status does not throw.
 
-The address is a string. The same server can be a relative path §/api/opiskelijat§. Another server requires that the server allows the call. The browser blocks it otherwise. This view has no network, so a real fetch belongs in the browser.
+The address is a string. The same server can be a relative path §/api/students§. Another server requires that the server allows the call. The browser blocks it otherwise. This view has no network, so a real fetch belongs in the browser.
 
 >> Do not leave out await on either step. Without the first you see a Promise. Without the second you see a response object whose fields do not yet hold the student's name. Both steps can fail, so they belong in the same try block.`,
   },

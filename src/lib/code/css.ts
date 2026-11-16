@@ -26,7 +26,7 @@ const css: Language = {
         { fi: "Rivi loppuu puolipisteeseen.", en: "A line ends with a semicolon." },
         { fi: "p { } koskee jokaista kappaletta.", en: "p { } applies to every paragraph." },
       ],
-      file: "saanto.css",
+      file: "styles.css",
       code: `p {
   color: #1c1917;
   font-size: 1.125rem;
@@ -38,12 +38,12 @@ h1 {
       theory: {
         fi: `**Sääntö** on valitsin ja lohko. Valitsin §p§ tarkoittaa jokaista kappaletta. Lohkon sisällä jokainen rivi on yksi päätös: ominaisuuden nimi, kaksoispiste, arvo ja puolipiste.
 
-CSS ei lisää sisältöä. Se vain muuttaa HTML-elementin ulkoasua. Jos kappaletta ei ole HTML:ssä, sääntö ei näy missään. Linkitä tyylitiedosto sivun §head§-osassa: §<link rel="stylesheet" href="saanto.css">§.
+CSS ei lisää sisältöä. Se vain muuttaa HTML-elementin ulkoasua. Jos kappaletta ei ole HTML:ssä, sääntö ei näy missään. Linkitä tyylitiedosto sivun §head§-osassa: §<link rel="stylesheet" href="styles.css">§.
 
 >> Kirjoita yksi ominaisuus rivilleen. Selain ei välitä rivinvaihdoista, mutta ihminen löytää puuttuvan puolipisteen nopeammin.`,
         en: `A **rule** is a selector and a block. The selector §p§ means every paragraph. Inside the block each line is one decision: the property name, a colon, the value and a semicolon.
 
-CSS does not add content. It only changes how an HTML element looks. If the paragraph is not in the HTML, the rule shows up nowhere. Link the stylesheet from the page's §head§: §<link rel="stylesheet" href="saanto.css">§.
+CSS does not add content. It only changes how an HTML element looks. If the paragraph is not in the HTML, the rule shows up nowhere. Link the stylesheet from the page's §head§: §<link rel="stylesheet" href="styles.css">§.
 
 >> Put one property on its own line. The browser does not care about line breaks, but a person finds a missing semicolon faster.`,
       },
@@ -61,7 +61,7 @@ CSS does not add content. It only changes how an HTML element looks. If the para
         { fi: "#000000 on musta ja #ffffff on valkoinen.", en: "#000000 is black and #ffffff is white." },
         { fi: "Kolmen merkin #3a7 on sama kuin #33aa77.", en: "The three-character #3a7 is the same as #33aa77." },
       ],
-      file: "vari.css",
+      file: "color.css",
       code: `body {
   background: #f5f0e8;
   color: #1c1917;
@@ -96,7 +96,7 @@ The same numbers can be read in base 10. The [[RGB converter|color]] turns the h
         { fi: "padding on laatikon sisällä, margin sen ulkopuolella.", en: "padding is inside the box, margin is outside it." },
         { fi: "margin yhdistyy viereisen kappaleen marginaaliin.", en: "A margin collapses with the next paragraph's margin." },
       ],
-      file: "laatikko.css",
+      file: "box.css",
       code: `section {
   padding: 1rem;
   border: 1px solid #d6d3d1;
@@ -128,7 +128,7 @@ The same numbers can be read in base 10. The [[RGB converter|color]] turns the h
         { fi: "1rem on yleensä 16px, kunnes juuren fonttia muutetaan.", en: "1rem is usually 16px, until the root font is changed." },
         { fi: "Leveyden 50% laskee vanhemman leveydestä, ei koko näytöstä.", en: "A width of 50% is computed from the parent width, not the whole screen." },
       ],
-      file: "yksikot.css",
+      file: "units.css",
       code: `html {
   font-size: 100%;
 }
@@ -137,7 +137,7 @@ h1 {
   font-size: 2rem;
 }
 
-.palsta {
+.column {
   width: 50%;
 }`,
       theory: {
@@ -163,24 +163,24 @@ h1 {
         en: "A more specific selector beats a general one. If specificity is equal, the later rule in the file wins.",
       },
       points: [
-        { fi: ".huomio on tarkempi kuin p.", en: ".huomio is more specific than p." },
+        { fi: ".note on tarkempi kuin p.", en: ".note is more specific than p." },
         { fi: "Älä käytä !important-sanaa, ellei muuta keinoa ole.", en: "Do not use !important unless nothing else works." },
       ],
-      file: "valinta.css",
+      file: "cascade.css",
       code: `p {
   color: #1c1917;
 }
 
-p.huomio {
+p.note {
   color: #9a3412;
 }`,
       theory: {
-        fi: `**Voittava sääntö** valitaan tarkkuudella. Elementin nimi §p§ on väljä. Luokka §.huomio§ on tarkempi, koska se osuu vain elementteihin, joilla on tämä luokka. §p.huomio§ on vielä tarkempi: sen pitää olla kappale *ja* sillä pitää olla luokka.
+        fi: `**Voittava sääntö** valitaan tarkkuudella. Elementin nimi §p§ on väljä. Luokka §.note§ on tarkempi, koska se osuu vain elementteihin, joilla on tämä luokka. §p.note§ on vielä tarkempi: sen pitää olla kappale *ja* sillä pitää olla luokka.
 
 Jos kaksi sääntöä on yhtä tarkkoja, alempana tiedostossa oleva voittaa. Selain ei sekoita arvoja keskenään. Yksi ominaisuus saa yhden voittavan arvon.
 
 >> §!important§ pakottaa arvon läpi tarkkuuden. Se tekee myöhemmästä korjauksesta vaikean. Korjaa valitsin, älä lisää important-sanaa.`,
-        en: `The **winning rule** is chosen by specificity. An element name §p§ is broad. A class §.huomio§ is more specific, because it hits only elements with that class. §p.huomio§ is more specific still: it must be a paragraph *and* it must have the class.
+        en: `The **winning rule** is chosen by specificity. An element name §p§ is broad. A class §.note§ is more specific, because it hits only elements with that class. §p.note§ is more specific still: it must be a paragraph *and* it must have the class.
 
 If two rules are equally specific, the one later in the file wins. The browser does not blend the values. One property gets one winning value.
 
@@ -200,26 +200,26 @@ If two rules are equally specific, the one later in the file wins. The browser d
         { fi: "Sama luokka saa olla monella elementillä.", en: "The same class may be on many elements." },
         { fi: "id on yksilöllinen. Sitä ei käytetä tavalliseen tyyliin.", en: "id is unique. It is not used for ordinary styling." },
       ],
-      file: "luokka.css",
-      code: `.kortti {
+      file: "class.css",
+      code: `.card {
   padding: 1rem;
   border: 1px solid #d6d3d1;
 }
 
-.kortti h2 {
+.card h2 {
   margin-top: 0;
 }`,
       theory: {
-        fi: `**Luokka** on yhteinen nimi. HTML:ssä kirjoitetaan §class="kortti"§. CSS:ssä sama nimi on §.kortti§. Piste kuuluu vain CSS:ään, ei HTML-attribuuttiin.
+        fi: `**Luokka** on yhteinen nimi. HTML:ssä kirjoitetaan §class="card"§. CSS:ssä sama nimi on §.card§. Piste kuuluu vain CSS:ään, ei HTML-attribuuttiin.
 
-§.kortti h2§ tarkoittaa otsikkoa, joka on kortin *sisällä*. Väli valitsimessa on tärkeä. §.kortti.h2§ ilman väliä tarkoittaisi elementtiä, jolla on molemmat luokat, eikä sellaista otsikkoa ole.
+§.card h2§ tarkoittaa otsikkoa, joka on kortin *sisällä*. Väli valitsimessa on tärkeä. §.card.h2§ ilman väliä tarkoittaisi elementtiä, jolla on molemmat luokat, eikä sellaista otsikkoa ole.
 
->> Nimeä luokka asian mukaan, esimerkiksi §kortti§ tai §varoitus§, ei ulkoasun mukaan kuten §punainen-laatikko§. Kun väri muuttuu, nimi ei jää valheeksi.`,
-        en: `A **class** is a shared name. In HTML you write §class="kortti"§. In CSS the same name is §.kortti§. The dot belongs only in CSS, not in the HTML attribute.
+>> Nimeä luokka asian mukaan, esimerkiksi §card§ tai §warning§, ei ulkoasun mukaan kuten §red-box§. Kun väri muuttuu, nimi ei jää valheeksi.`,
+        en: `A **class** is a shared name. In HTML you write §class="card"§. In CSS the same name is §.card§. The dot belongs only in CSS, not in the HTML attribute.
 
-§.kortti h2§ means a heading that is *inside* a card. The space in the selector matters. §.kortti.h2§ without a space would mean an element that has both classes, and a heading is not that.
+§.card h2§ means a heading that is *inside* a card. The space in the selector matters. §.card.h2§ without a space would mean an element that has both classes, and a heading is not that.
 
->> Name the class by the thing, for example §kortti§ or §varoitus§, not by the look such as §punainen-laatikko§. When the color changes, the name does not become a lie.`,
+>> Name the class by the thing, for example §card§ or §warning§, not by the look such as §red-box§. When the color changes, the name does not become a lie.`,
       },
       tags: ["class", "luokka", "selector", "id"],
     },
@@ -236,12 +236,12 @@ If two rules are equally specific, the one later in the file wins. The browser d
         { fi: "justify-content säätää pääsuuntaa, align-items sivusuuntaa.", en: "justify-content sets the main direction, align-items the cross direction." },
       ],
       file: "flex.css",
-      code: `.rivi {
+      code: `.row {
   display: flex;
   gap: 1rem;
 }
 
-.rivi > * {
+.row > * {
   flex: 1;
 }`,
       theory: {
@@ -270,7 +270,7 @@ If two rules are equally specific, the one later in the file wins. The browser d
         { fi: "Väli tarkoittaa jälkeläistä. > tarkoittaa suoraa lasta.", en: "A space means a descendant. > means a direct child." },
         { fi: ":hover on hiiri elementin päällä. :focus on näppäimistön kohde.", en: ":hover is the pointer over the element. :focus is the keyboard target." },
       ],
-      file: "valitsimet.css",
+      file: "selectors.css",
       code: `nav a {
   color: #1c1917;
 }
@@ -309,7 +309,7 @@ A pseudo-class starts with a colon. §:hover§ applies when the pointer is over 
         { fi: "Kirjasinlista päättyy yleiseen nimeen, kuten sans-serif.", en: "A font list ends with a generic name, such as sans-serif." },
         { fi: "line-height ilman yksikköä on kerroin, esimerkiksi 1.5.", en: "line-height without a unit is a multiplier, for example 1.5." },
       ],
-      file: "tyyppi.css",
+      file: "type.css",
       code: `body {
   font-family: "Source Sans 3", sans-serif;
   line-height: 1.5;
@@ -346,7 +346,7 @@ h1 {
         { fi: "repeat(3, 1fr) on kolme yhtä leveää saraketta.", en: "repeat(3, 1fr) is three columns of equal width." },
       ],
       file: "grid.css",
-      code: `.kortit {
+      code: `.cards {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
@@ -377,12 +377,12 @@ A child goes into the next cell in writing order. §grid-column: span 2§ stretc
         { fi: "absolute hakee lähimmän position-arvon, joka ei ole static.", en: "absolute looks for the nearest position that is not static." },
         { fi: "fixed on kiinni ikkunassa, ei sivun vierityksessä.", en: "fixed is tied to the window, not to scrolling the page." },
       ],
-      file: "sijainti.css",
-      code: `.kehys {
+      file: "position.css",
+      code: `.frame {
   position: relative;
 }
 
-.merkki {
+.badge {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
@@ -406,14 +406,14 @@ A child goes into the next cell in writing order. §grid-column: span 2§ stretc
       topic: "rakenne",
       title: { fi: "Muuttujat", en: "Variables" },
       blurb: {
-        fi: "Custom property on nimetty arvo. Sitä käyttää var(--nimi). Määrittele se :root-valitsimessa, jos koko sivu tarvitsee sitä.",
+        fi: "Custom property on nimetty arvo. Sitä käyttää var(--name). Määrittele se :root-valitsimessa, jos koko sivu tarvitsee sitä.",
         en: "A custom property is a named value. You use it with var(--name). Define it on :root when the whole page needs it.",
       },
       points: [
-        { fi: "Nimi alkaa kahdella viivalla: --vari.", en: "The name starts with two dashes: --vari." },
-        { fi: "var(--vari, #000) käyttää mustaa, jos muuttujaa ei ole.", en: "var(--vari, #000) uses black when the variable is missing." },
+        { fi: "Nimi alkaa kahdella viivalla: --ink.", en: "The name starts with two dashes: --ink." },
+        { fi: "var(--ink, #000) käyttää mustaa, jos muuttujaa ei ole.", en: "var(--ink, #000) uses black when the variable is missing." },
       ],
-      file: "muuttujat.css",
+      file: "variables.css",
       code: `:root {
   --paper: #f5f0e8;
   --ink: #1c1917;
@@ -449,14 +449,14 @@ body {
         { fi: "min-width: 48rem tarkoittaa vähintään tätä leveyttä.", en: "min-width: 48rem means at least this width." },
         { fi: "Kirjoita puhelimen tyyli ensin, leveän näytön poikkeus kyselyn sisään.", en: "Write the phone styles first, and the wide-screen exception inside the query." },
       ],
-      file: "mukautuva.css",
-      code: `.kortit {
+      file: "responsive.css",
+      code: `.cards {
   display: grid;
   gap: 1rem;
 }
 
 @media (min-width: 48rem) {
-  .kortit {
+  .cards {
     grid-template-columns: 1fr 1fr;
   }
 }`,

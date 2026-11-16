@@ -15,6 +15,11 @@ import { t, type Locale } from "@/lib/i18n";
 import { LocaleContext } from "@/components/locale-context";
 import { RichText } from "@/components/rich-text";
 
+function htmlPreviewSource(code: string): string {
+  const body = code.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  return (body ? body[1] : code).replace(/<script[\s\S]*?<\/script>/gi, "").trim();
+}
+
 function fold(value: string): string {
   return value
     .toLowerCase()
@@ -121,7 +126,7 @@ export function ProgrammingLibrary({
         <section key={group.key}>
           <h2 className="mb-3 text-sm font-medium">
             <span className="text-muted">{group.language.name}</span>
-            <span className="px-2 text-accent" aria-hidden="true">
+            <span className="px-2 text-primary" aria-hidden="true">
               •
             </span>
             {group.topic}
@@ -134,7 +139,7 @@ export function ProgrammingLibrary({
                   onClick={() => onOpen(lessonKey(group.language.id, lesson.id))}
                   className="flex h-full w-full flex-col gap-2 rounded-lg border border-line bg-paper p-4 text-left shadow-sm"
                 >
-                  <span className="font-mono text-xs tracking-widest text-accent uppercase">{lesson.file}</span>
+                  <span className="font-mono text-xs tracking-widest text-primary uppercase">{lesson.file}</span>
                   <span className="text-lg leading-snug font-semibold">{tx(locale, lesson.title)}</span>
                   <span className="text-sm text-pretty text-muted">{tx(locale, lesson.blurb)}</span>
                 </button>
@@ -175,7 +180,7 @@ export function ProgrammingLesson({
     return (
       <div className="rounded-lg border border-line bg-paper px-6 py-14 text-center">
         <p className="text-lg font-semibold">{t(locale, "Ei esimerkkejä")}</p>
-        <button type="button" onClick={onBack} className="mt-5 h-11 rounded-md bg-accent px-4 text-sm font-medium text-accent-ink">
+        <button type="button" onClick={onBack} className="mt-5 h-11 rounded-md bg-primary px-4 text-sm font-medium text-white">
           {t(locale, "Kaikki esimerkit")}
         </button>
       </div>
@@ -212,7 +217,7 @@ export function ProgrammingLesson({
       </button>
 
       <header className="flex flex-col gap-3">
-        <p className="font-mono text-xs tracking-widest text-accent uppercase">
+        <p className="font-mono text-xs tracking-widest text-primary uppercase">
           {language.name}
           <span className="px-2" aria-hidden="true">
             •
@@ -225,7 +230,7 @@ export function ProgrammingLesson({
 
       {lesson.theory ? (
         <section className="rounded-lg border border-line bg-paper px-4 py-4">
-          <h3 className="mb-3 font-mono text-xs tracking-widest text-accent uppercase">{t(locale, "Teoria")}</h3>
+          <h3 className="mb-3 font-mono text-xs tracking-widest text-primary uppercase">{t(locale, "Teoria")}</h3>
           <RichText text={tx(locale, lesson.theory)} />
         </section>
       ) : null}
@@ -250,7 +255,7 @@ export function ProgrammingLesson({
                 type="button"
                 onClick={() => void run()}
                 disabled={running}
-                className="flex h-11 items-center gap-2 rounded-md bg-accent px-3 text-sm font-medium text-accent-ink disabled:opacity-60"
+                className="flex h-11 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-white disabled:opacity-60"
               >
                 <Play className="size-4" aria-hidden="true" />
                 {running ? t(locale, "Ajetaan") : t(locale, "Suorita")}
@@ -281,7 +286,7 @@ export function ProgrammingLesson({
             spellCheck={false}
             aria-label={tx(locale, lesson.title)}
             onChange={(event) => setDraft(event.target.value)}
-            className="code-surface min-h-64 w-full resize-y px-4 py-4 font-mono text-sm leading-relaxed outline-none"
+            className="code-surface min-h-64 w-full resize-y px-4 py-4 font-mono text-sm leading-relaxed"
           />
         ) : (
           <pre className="overflow-x-auto px-4 py-4 font-mono text-sm leading-relaxed">
@@ -292,12 +297,24 @@ export function ProgrammingLesson({
 
       {language.runnable || lesson.output ? (
         <section className="overflow-hidden rounded-lg border border-line bg-paper">
-          <h3 className="border-b border-line px-4 py-3 font-mono text-xs tracking-widest text-accent uppercase">
+          <h3 className="border-b border-line px-4 py-3 font-mono text-xs tracking-widest text-primary uppercase">
             {language.runnable ? t(locale, "Tuloste") : t(locale, "Odotettu tuloste")}
           </h3>
-          <pre className="overflow-x-auto px-4 py-4 font-mono text-sm leading-relaxed">
-            <code>{output || t(locale, "Ei tulostetta")}</code>
-          </pre>
+          {language.id === "html" ? (
+            <div
+              className="html-preview px-4 py-4"
+              onSubmit={(event) => event.preventDefault()}
+              onClick={(event) => {
+                const target = event.target;
+                if (target instanceof Element && target.closest("a")) event.preventDefault();
+              }}
+              dangerouslySetInnerHTML={{ __html: htmlPreviewSource(lesson.code) }}
+            />
+          ) : (
+            <pre className="overflow-x-auto px-4 py-4 font-mono text-sm leading-relaxed">
+              <code>{output || t(locale, "Ei tulostetta")}</code>
+            </pre>
+          )}
         </section>
       ) : null}
 
@@ -320,7 +337,7 @@ export function ProgrammingLesson({
           <button
             type="button"
             onClick={() => onOpen(lessonKey(language.id, next.id))}
-            className="h-11 rounded-md bg-ink px-3 text-sm text-paper"
+            className="h-11 rounded-md bg-primary px-3 text-sm text-white"
           >
             {tx(locale, next.title)}
           </button>

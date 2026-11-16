@@ -2,8 +2,8 @@ import type { Language } from "./types";
 import { SQL_THEORY } from "./sql-theory";
 
 const tableNote = {
-  fi: "Esimerkit käyttävät taulua opiskelijat (id, nimi, op, vuosikurssi): (1, Aino, 55, 1), (2, Leevi, 120, 2), (3, Noora, 180, 3).",
-  en: "Samples use the table opiskelijat (id, nimi, op, vuosikurssi): (1, Aino, 55, 1), (2, Leevi, 120, 2), (3, Noora, 180, 3).",
+  fi: "Esimerkit käyttävät taulua students (id, name, credits, year): (1, Aino, 55, 1), (2, Leevi, 120, 2), (3, Noora, 180, 3).",
+  en: "Samples use the table students (id, name, credits, year): (1, Aino, 55, 1), (2, Leevi, 120, 2), (3, Noora, 180, 3).",
 };
 
 const sqlLessons: Language = {
@@ -33,8 +33,8 @@ const sqlLessons: Language = {
         { fi: "AS antaa sarakkeelle tulosteessa käytettävän nimen.", en: "AS gives the column a name used in the result." },
       ],
       file: "select.sql",
-      code: `SELECT nimi, op
-FROM opiskelijat;`,
+      code: `SELECT name, credits
+FROM students;`,
       output: `Aino|55
 Leevi|120
 Noora|180`,
@@ -54,9 +54,9 @@ Noora|180`,
         { fi: "LIKE '%oo%' etsii osajonoa. % on mikä tahansa pätkä.", en: "LIKE '%oo%' searches for a substring. % is any stretch of text." },
       ],
       file: "where.sql",
-      code: `SELECT nimi, op
-FROM opiskelijat
-WHERE op >= 100;`,
+      code: `SELECT name, credits
+FROM students
+WHERE credits >= 100;`,
       output: `Leevi|120
 Noora|180`,
       note: tableNote,
@@ -75,9 +75,9 @@ Noora|180`,
         { fi: "LIMIT tulee kyselyn loppuun.", en: "LIMIT goes at the end of the query." },
       ],
       file: "order.sql",
-      code: `SELECT nimi, op
-FROM opiskelijat
-ORDER BY op DESC
+      code: `SELECT name, credits
+FROM students
+ORDER BY credits DESC
 LIMIT 2;`,
       output: `Noora|180
 Leevi|120`,
@@ -97,14 +97,14 @@ Leevi|120`,
         { fi: "INSERT luettelee sarakkeet. Jätä lista pois vain, jos annat arvon jokaiseen sarakkeeseen.", en: "INSERT names the columns. Omit the list only when you give a value for every column." },
       ],
       file: "write.sql",
-      code: `INSERT INTO opiskelijat (nimi, op, vuosikurssi)
+      code: `INSERT INTO students (name, credits, year)
 VALUES ('Elias', 10, 1);
 
-UPDATE opiskelijat
-SET op = op + 5
-WHERE nimi = 'Aino';
+UPDATE students
+SET credits = credits + 5
+WHERE name = 'Aino';
 
-DELETE FROM opiskelijat
+DELETE FROM students
 WHERE id = 99;`,
       output: `1 rivi lisätty
 1 rivi päivitetty
@@ -122,18 +122,18 @@ WHERE id = 99;`,
       },
       points: [
         { fi: "ON kertoo parituksen. WHERE sen jälkeen rajaa valmista tulosta.", en: "ON states the match. WHERE after that filters the finished result." },
-        { fi: "Käytä taulun nimeä sarakkeen edessä, kun sama nimi on molemmissa: o.nimi.", en: "Put the table name before the column when both tables share it: o.nimi." },
+        { fi: "Käytä taulun nimeä sarakkeen edessä, kun sama nimi on molemmissa: s.name.", en: "Put the table name before the column when both tables share it: s.name." },
       ],
       file: "join.sql",
-      code: `SELECT o.nimi, k.nimi AS kurssi
-FROM opiskelijat AS o
-JOIN suoritukset AS s ON s.opiskelija_id = o.id
-JOIN kurssit AS k ON k.id = s.kurssi_id
-WHERE o.nimi = 'Aino';`,
+      code: `SELECT s.name, c.name AS course
+FROM students AS s
+JOIN completions AS e ON e.student_id = s.id
+JOIN courses AS c ON c.id = e.course_id
+WHERE s.name = 'Aino';`,
       output: `Aino|Ohjelmointi 1`,
       note: {
-        fi: "suoritukset yhdistää opiskelijan ja kurssin. Esimerkissä Ainolla on yksi suoritus, kurssi Ohjelmointi 1.",
-        en: "suoritukset links a student and a course. In the sample Aino has one completion, the course Ohjelmointi 1.",
+        fi: "completions yhdistää opiskelijan ja kurssin. Esimerkissä Ainolla on yksi suoritus, kurssi Ohjelmointi 1.",
+        en: "completions links a student and a course. In the sample Aino has one completion, the course Ohjelmointi 1.",
       },
       tags: ["join", "inner", "left", "liitos", "foreign"],
     },
@@ -150,10 +150,10 @@ WHERE o.nimi = 'Aino';`,
         { fi: "COUNT(*) laskee rivit, COUNT(sarake) ohittaa NULL-arvot.", en: "COUNT(*) counts rows, COUNT(column) skips NULLs." },
       ],
       file: "group.sql",
-      code: `SELECT vuosikurssi, COUNT(*) AS lukumaara, SUM(op) AS op_yht
-FROM opiskelijat
-GROUP BY vuosikurssi
-ORDER BY vuosikurssi;`,
+      code: `SELECT year, COUNT(*) AS student_count, SUM(credits) AS credits_sum
+FROM students
+GROUP BY year
+ORDER BY year;`,
       output: `1|1|55
 2|1|120
 3|1|180`,
@@ -173,11 +173,11 @@ ORDER BY vuosikurssi;`,
         { fi: "Tyyppinimet vaihtelevat. SQLite on löyhä, PostgreSQL tiukka.", en: "Type names differ. SQLite is loose, PostgreSQL is strict." },
       ],
       file: "create.sql",
-      code: `CREATE TABLE opiskelijat (
+      code: `CREATE TABLE students (
     id INTEGER PRIMARY KEY,
-    nimi TEXT NOT NULL,
-    op INTEGER NOT NULL DEFAULT 0,
-    vuosikurssi INTEGER NOT NULL
+    name TEXT NOT NULL,
+    credits INTEGER NOT NULL DEFAULT 0,
+    year INTEGER NOT NULL
 );`,
       output: `(taulu luotu)`,
       note: {
@@ -195,13 +195,13 @@ ORDER BY vuosikurssi;`,
         en: "AS gives a table or a column a short name in this query. It does not change the table.",
       },
       points: [
-        { fi: "Taulun alias kirjoitetaan sarakkeen eteen: o.nimi.", en: "A table alias is written in front of the column: o.nimi." },
+        { fi: "Taulun alias kirjoitetaan sarakkeen eteen: s.name.", en: "A table alias is written in front of the column: s.name." },
         { fi: "WHERE ei aina näe SELECT-listan aliasta.", en: "WHERE does not always see an alias from the SELECT list." },
       ],
       file: "alias.sql",
-      code: `SELECT o.nimi AS opiskelija, o.op AS opintopisteet
-FROM opiskelijat AS o
-WHERE o.op >= 100;`,
+      code: `SELECT s.name AS student_name, s.credits AS credit_points
+FROM students AS s
+WHERE s.credits >= 100;`,
       output: `Leevi|120
 Noora|180`,
       note: tableNote,
@@ -219,10 +219,10 @@ Noora|180`,
         { fi: "Yksi arvo sopii vertailuun >. Monta arvoa sopii sanaan IN.", en: "One value fits a comparison >. Many values fit the word IN." },
         { fi: "Sisäpuoli lasketaan ensin.", en: "The inside is computed first." },
       ],
-      file: "alikysely.sql",
-      code: `SELECT nimi, op
-FROM opiskelijat
-WHERE op > (SELECT AVG(op) FROM opiskelijat);`,
+      file: "subquery.sql",
+      code: `SELECT name, credits
+FROM students
+WHERE credits > (SELECT AVG(credits) FROM students);`,
       output: `Noora|180`,
       note: tableNote,
       tags: ["subquery", "avg", "in", "alikysely"],
@@ -240,10 +240,10 @@ WHERE op > (SELECT AVG(op) FROM opiskelijat);`,
         { fi: "COUNT(sarake) ohittaa NULL-arvot, COUNT(*) ei.", en: "COUNT(column) skips NULLs, COUNT(*) does not." },
       ],
       file: "null.sql",
-      code: `SELECT nimi, COALESCE(op, 0) AS op
-FROM opiskelijat
-WHERE op IS NULL;`,
-      output: `(rivit, joiden op on NULL)`,
+      code: `SELECT name, COALESCE(credits, 0) AS credits
+FROM students
+WHERE credits IS NULL;`,
+      output: `(rivit, joiden credits on NULL)`,
       note: tableNote,
       tags: ["null", "coalesce", "is null"],
     },
@@ -259,9 +259,9 @@ WHERE op IS NULL;`,
         { fi: "PRIMARY KEY on jo indeksi.", en: "A PRIMARY KEY is already an index." },
         { fi: "Indeksi joka sarakkeessa hidastaa kirjoitusta.", en: "An index on every column slows writing." },
       ],
-      file: "indeksi.sql",
-      code: `CREATE INDEX idx_opiskelijat_op
-ON opiskelijat(op);`,
+      file: "index.sql",
+      code: `CREATE INDEX idx_students_credits
+ON students(credits);`,
       output: `(indeksi luotu)`,
       tags: ["index", "create index", "haku", "skeema"],
     },
@@ -274,17 +274,17 @@ ON opiskelijat(op);`,
         en: "NULL and a WHERE in the wrong place change the result without an error message.",
       },
       points: [
-        { fi: "WHERE op = NULL ei palauta rivejä. Oikea muoto on WHERE op IS NULL.", en: "WHERE op = NULL returns no rows. The correct form is WHERE op IS NULL." },
+        { fi: "WHERE credits = NULL ei palauta rivejä. Oikea muoto on WHERE credits IS NULL.", en: "WHERE credits = NULL returns no rows. The correct form is WHERE credits IS NULL." },
         { fi: "HAVING ilman GROUP BY -lausetta suodattaa koko tuloksen yhtenä ryhmänä.", en: "HAVING without GROUP BY filters the whole result as one group." },
       ],
       file: "pitfalls.sql",
-      code: `SELECT nimi
-FROM opiskelijat
-WHERE op = NULL;
+      code: `SELECT name
+FROM students
+WHERE credits = NULL;
 
-SELECT nimi
-FROM opiskelijat
-WHERE op IS NULL;`,
+SELECT name
+FROM students
+WHERE credits IS NULL;`,
       output: `(ei rivejä)
 (NULL-rivit, jos niitä on)`,
       note: tableNote,

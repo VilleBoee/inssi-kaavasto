@@ -26,22 +26,22 @@ const react: Language = {
         { fi: "Tiedostossa on yksi päätason elementti tai fragmentti <>...</>.", en: "The file returns one root element or a fragment <>...</>." },
         { fi: "className vastaa HTML:n class-attribuuttia.", en: "className is the HTML class attribute." },
       ],
-      file: "Kortti.jsx",
-      code: `export function Kortti() {
+      file: "Card.jsx",
+      code: `export function Card() {
   return (
-    <article className="kortti">
+    <article className="card">
       <h2>Tasavirtapiiri</h2>
       <p>U = 12 V</p>
     </article>
   );
 }`,
       theory: {
-        fi: `**Komponentti** on funktio, joka kuvaa palan sivua. Nimi alkaa isolla kirjaimella, jotta React erottaa sen HTML-tunnisteesta. §<Kortti />§ kutsuu funktiota. §<article>§ on tavallinen HTML-elementti.
+        fi: `**Komponentti** on funktio, joka kuvaa palan sivua. Nimi alkaa isolla kirjaimella, jotta React erottaa sen HTML-tunnisteesta. §<Card />§ kutsuu funktiota. §<article>§ on tavallinen HTML-elementti.
 
 Palautettava kuvaus on **JSX**. Se näyttää HTML:ltä, mutta se on JavaScriptiä. Yksi return voi palauttaa vain yhden puun. Kaksi vierekkäistä elementtiä kääritään §<>§ ja §</>§ väliin, tai yhteen §article§- tai §div§-elementtiin.
 
 >> §className§ on luokka, koska sana class on JavaScriptissä varattu. Tyylit kirjoitetaan silti tavalliseen CSS-tiedostoon ja luokkaan, ei komponentin nimeen.`,
-        en: `A **component** is a function that describes a piece of the page. The name starts with a capital letter so React can tell it from an HTML tag. §<Kortti />§ calls the function. §<article>§ is an ordinary HTML element.
+        en: `A **component** is a function that describes a piece of the page. The name starts with a capital letter so React can tell it from an HTML tag. §<Card />§ calls the function. §<article>§ is an ordinary HTML element.
 
 The description you return is **JSX**. It looks like HTML, but it is JavaScript. One return can return only one tree. Two sibling elements are wrapped in §<>§ and §</>§, or in one §article§ or §div§.
 
@@ -58,32 +58,32 @@ The description you return is **JSX**. It looks like HTML, but it is JavaScript.
         en: "A prop is data the caller passes to a component. The component does not change a prop.",
       },
       points: [
-        { fi: "Aaltosulkeet upottavat JavaScript-arvon: {jannite}.", en: "Braces embed a JavaScript value: {jannite}." },
+        { fi: "Aaltosulkeet upottavat JavaScript-arvon: {voltage}.", en: "Braces embed a JavaScript value: {voltage}." },
         { fi: "Merkkijono ilman aaltosulkeita kirjoitetaan lainausmerkkeihin.", en: "A string without braces is written in quotes." },
       ],
-      file: "Mittaus.jsx",
-      code: `export function Mittaus({ jannite, vastus }) {
+      file: "Reading.jsx",
+      code: `export function Reading({ voltage, resistance }) {
   return (
     <p>
-      U = {jannite} V, R = {vastus} Ω
+      U = {voltage} V, R = {resistance} Ω
     </p>
   );
 }
 
-export function Sivu() {
-  return <Mittaus jannite={12} vastus={220} />;
+export function Page() {
+  return <Reading voltage={12} resistance={220} />;
 }`,
       theory: {
-        fi: `**Prop** on argumentti. Kutsu §<Mittaus jannite={12} vastus={220} />§ antaa funktiolle oliolla arvot 12 ja 220. Aaltosulkeet tarkoittavat, että sisällä on JavaScriptiä, ei tekstiä. Ilman niitä §{12}§ näkyisi merkkeinä.
+        fi: `**Prop** on argumentti. Kutsu §<Reading voltage={12} resistance={220} />§ antaa funktiolle oliolla arvot 12 ja 220. Aaltosulkeet tarkoittavat, että sisällä on JavaScriptiä, ei tekstiä. Ilman niitä §{12}§ näkyisi merkkeinä.
 
 Komponentti lukee propsit, mutta ei sijoita niihin uutta arvoa. Jos luku muuttuu, *kutsuja* antaa uuden propin ja React kutsuu funktion uudestaan. Näin tieto kulkee ylhäältä alas.
 
->> Pura tarvitsemasi nimet parametrilistassa: §{ jannite, vastus }§. Silloin funktion sisältä näkee heti, mitä tietoa pala tarvitsee.`,
-        en: `A **prop** is an argument. The call §<Mittaus jannite={12} vastus={220} />§ gives the function the values 12 and 220 on an object. Braces mean the inside is JavaScript, not text. Without them §{12}§ would show up as characters.
+>> Pura tarvitsemasi nimet parametrilistassa: §{ voltage, resistance }§. Silloin funktion sisältä näkee heti, mitä tietoa pala tarvitsee.`,
+        en: `A **prop** is an argument. The call §<Reading voltage={12} resistance={220} />§ gives the function the values 12 and 220 on an object. Braces mean the inside is JavaScript, not text. Without them §{12}§ would show up as characters.
 
 A component reads props but does not assign a new value to them. If a number changes, the *caller* passes a new prop and React calls the function again. Data flows downward.
 
->> Pull out the names you need in the parameter list: §{ jannite, vastus }§. Then the inside of the function shows at once what the piece needs.`,
+>> Pull out the names you need in the parameter list: §{ voltage, resistance }§. Then the inside of the function shows at once what the piece needs.`,
       },
       tags: ["props", "jsx", "argumentti", "react"],
     },
@@ -99,10 +99,10 @@ A component reads props but does not assign a new value to them. If a number cha
         { fi: "Älä muuta tilaa sijoituksella. Kutsu asetinta.", en: "Do not change state by assignment. Call the setter." },
         { fi: "Alkuarvo annetaan vain ensimmäisellä kutsulla.", en: "The initial value is used only on the first call." },
       ],
-      file: "Laskuri.jsx",
+      file: "Counter.jsx",
       code: `import { useState } from "react";
 
-export function Laskuri() {
+export function Counter() {
   const [n, setN] = useState(0);
   return (
     <button onClick={() => setN(n + 1)}>
@@ -133,20 +133,20 @@ export function Laskuri() {
         en: "onClick receives a function. React calls it when the user clicks the element.",
       },
       points: [
-        { fi: "onClick={lisaa} antaa funktion. onClick={lisaa()} kutsuu sen heti.", en: "onClick={lisaa} passes the function. onClick={lisaa()} calls it immediately." },
+        { fi: "onClick={add} antaa funktion. onClick={add()} kutsuu sen heti.", en: "onClick={add} passes the function. onClick={add()} calls it immediately." },
         { fi: "Nimi alkaa on-etuliitteellä: onChange, onSubmit.", en: "The name starts with on: onChange, onSubmit." },
       ],
-      file: "Nappi.jsx",
-      code: `export function Nappi({ onLisaa }) {
-  return <button onClick={onLisaa}>Lisää mittaus</button>;
+      file: "Button.jsx",
+      code: `export function Button({ onAdd }) {
+  return <button onClick={onAdd}>Lisää mittaus</button>;
 }`,
       theory: {
-        fi: `**Tapahtuma** on käyttäjän teko. §onClick§ ei ole kutsun tulos vaan funktio, jonka React kutsuu myöhemmin. Sulkeet paikallaan §onClick={lisaa()}§ ajavat funktion heti piirron aikana. Ilman sulkeita §onClick={lisaa}§ vasta antaa funktion odottamaan.
+        fi: `**Tapahtuma** on käyttäjän teko. §onClick§ ei ole kutsun tulos vaan funktio, jonka React kutsuu myöhemmin. Sulkeet paikallaan §onClick={add()}§ ajavat funktion heti piirron aikana. Ilman sulkeita §onClick={add}§ vasta antaa funktion odottamaan.
 
 Lomakkeen kentässä §onChange§ saa tapahtumaolion. Kentän teksti on §event.target.value§. Se on aina merkkijono, myös numerokentässä. Luvuksi muuttaminen on oma askeleensa.
 
 >> Jos painike on §form§-tunnisteen sisällä, anna sille §type="button"§, ellei sen pidä lähettää lomaketta. Muuten selain lähettää lomakkeen ja sivu latautuu uudestaan.`,
-        en: `An **event** is something the user does. §onClick§ is not the result of a call. It is a function React calls later. Parentheses in §onClick={lisaa()}§ run the function during the draw. Without them, §onClick={lisaa}§ only hands the function over to wait.
+        en: `An **event** is something the user does. §onClick§ is not the result of a call. It is a function React calls later. Parentheses in §onClick={add()}§ run the function during the draw. Without them, §onClick={add}§ only hands the function over to wait.
 
 On a form field, §onChange§ receives an event object. The field's text is §event.target.value§. It is always a string, even on a number field. Turning it into a number is a separate step.
 
@@ -166,15 +166,15 @@ On a form field, §onChange§ receives an event object. The field's text is §ev
         { fi: "Älä laita pelkkää lukua &&-merkin vasemmalle puolelle. 0 näkyisi sivulla.", en: "Do not put a bare number on the left of &&. 0 would show up on the page." },
         { fi: "Kolmoisehto sopii lyhyeen valintaan kahden elementin välillä.", en: "A ternary fits a short choice between two elements." },
       ],
-      file: "Tila.jsx",
-      code: `export function Tulos({ virta }) {
-  if (virta == null) {
+      file: "State.jsx",
+      code: `export function Result({ current }) {
+  if (current == null) {
     return <p>Virtaa ei ole laskettu.</p>;
   }
   return (
     <p>
-      I = {virta} A
-      {virta > 0.5 && <strong> Suuri virta.</strong>}
+      I = {current} A
+      {current > 0.5 && <strong> Suuri virta.</strong>}
     </p>
   );
 }`,
@@ -183,12 +183,12 @@ On a form field, §onChange§ receives an event object. The field's text is §ev
 
 Keskellä JSX:ää §ehto && <strong>…</strong>§ näyttää elementin vain, kun ehto on tosi. Jos ehto on epätosi, paikalle ei tule mitään. Älä kirjoita ehtoon pelkkää lukua. Luku §0§ on epätosi, mutta React tulostaisi numeron 0 sivulle.
 
->> Kolmoisehto §valmis ? <p>Valmis</p> : <p>Kesken</p>§ on if ja else yhdellä rivillä. Jos haarat kasvavat, siirrä valinta funktion alkuun tavalliseen if-lauseeseen.`,
+>> Kolmoisehto §ready ? <p>Valmis</p> : <p>Kesken</p>§ on if ja else yhdellä rivillä. Jos haarat kasvavat, siirrä valinta funktion alkuun tavalliseen if-lauseeseen.`,
         en: `A **condition** chooses which element to return. An §if§ at the start of the function can return a completely different tree, for example an error. The code below it does not run.
 
 In the middle of JSX, §ehto && <strong>…</strong>§ shows the element only when the condition is true. When the condition is false, nothing is put there. Do not write a bare number as the condition. The number §0§ is falsy, but React would print the digit 0 on the page.
 
->> The ternary §valmis ? <p>Valmis</p> : <p>Kesken</p>§ is if and else on one line. If the branches grow, move the choice to an ordinary if at the start of the function.`,
+>> The ternary §ready ? <p>Valmis</p> : <p>Kesken</p>§ is if and else on one line. If the branches grow, move the choice to an ordinary if at the start of the function.`,
       },
       tags: ["if", "ehto", "conditional", "&&", "react"],
     },
@@ -204,13 +204,13 @@ In the middle of JSX, §ehto && <strong>…</strong>§ shows the element only wh
         { fi: "key ei ole prop, jota luet komponentin sisällä.", en: "key is not a prop you read inside the component." },
         { fi: "Älä käytä järjestysnumeroa avaimena, jos listan järjestys muuttuu.", en: "Do not use the index as the key if the list order changes." },
       ],
-      file: "Mittaukset.jsx",
-      code: `export function Mittaukset({ rivit }) {
+      file: "Readings.jsx",
+      code: `export function Readings({ rows }) {
   return (
     <ul>
-      {rivit.map((rivi) => (
-        <li key={rivi.id}>
-          {rivi.nimi}: {rivi.virta} A
+      {rows.map((row) => (
+        <li key={row.id}>
+          {row.name}: {row.current} A
         </li>
       ))}
     </ul>
@@ -221,12 +221,12 @@ In the middle of JSX, §ehto && <strong>…</strong>§ shows the element only wh
 
 §key§ kertoo, mikä kohta on sama seuraavassa piirrossa. Käytä tietokannan tai listan omaa id-arvoa. Järjestysnumero toimii vain, jos lista ei koskaan järjestäydy uudestaan eikä siitä poisteta kohtia keskeltä.
 
->> Avain on Reactille, ei sinulle. Jos tarvitset id:n myös komponentin sisällä, anna se tavallisena propina: §id={rivi.id}§.`,
+>> Avain on Reactille, ei sinulle. Jos tarvitset id:n myös komponentin sisällä, anna se tavallisena propina: §id={row.id}§.`,
         en: `A **list** is drawn with §map§. You return an element for each value in the array. The braces in JSX may contain that expression, because map returns an array of elements and React knows how to show it.
 
 §key§ says which item is the same on the next draw. Use the item's own id from the data. The index works only when the list is never reordered and items are never removed from the middle.
 
->> The key is for React, not for you. If you also need the id inside the component, pass it as an ordinary prop: §id={rivi.id}§.`,
+>> The key is for React, not for you. If you also need the id inside the component, pass it as an ordinary prop: §id={row.id}§.`,
       },
       tags: ["map", "key", "lista", "list", "react"],
     },
@@ -242,26 +242,26 @@ In the middle of JSX, §ehto && <strong>…</strong>§ shows the element only wh
         { fi: "children on se sisältö, joka kirjoitetaan alkavan ja lopettavan tunnisteen väliin.", en: "children is the content written between the opening and closing tag." },
         { fi: "Nosta tila sille komponentille, joka antaa sen useammalle lapselle.", en: "Lift state to the component that passes it to more than one child." },
       ],
-      file: "Sivu.jsx",
-      code: `function Paneeli({ children }) {
-  return <section className="kortti">{children}</section>;
+      file: "Page.jsx",
+      code: `function Panel({ children }) {
+  return <section className="card">{children}</section>;
 }
 
-export function Sivu() {
+export function Page() {
   return (
-    <Paneeli>
+    <Panel>
       <h2>Mittaus</h2>
-      <Mittaus jannite={12} vastus={220} />
-    </Paneeli>
+      <Reading voltage={12} resistance={220} />
+    </Panel>
   );
 }`,
       theory: {
-        fi: `**Koostaminen** tarkoittaa, että iso näkymä on pienten funktioiden puu. §Paneeli§ ei tiedä, onko sisällä mittaus vai ohje. Sen §children§ on se, mitä kutsuja kirjoittaa tunnisteiden väliin.
+        fi: `**Koostaminen** tarkoittaa, että iso näkymä on pienten funktioiden puu. §Panel§ ei tiedä, onko sisällä mittaus vai ohje. Sen §children§ on se, mitä kutsuja kirjoittaa tunnisteiden väliin.
 
 Tila elää siinä komponentissa, joka tarvitsee sitä. Jos kaksi lasta näyttää saman luvun, luku nostetaan niiden yhteiselle vanhemmalle ja annetaan alas propseina. Lasta ei käydä muuttamassa ulkoa.
 
 >> Hyvä komponentti on helppo lukea ääneen: *paneeli, jonka sisällä on otsikko ja mittaus*. Jos funktion nimi tarvitsee sanan *ja* kaksi kertaa, jaa se.`,
-        en: `**Composition** means a large view is a tree of small functions. §Paneeli§ does not know whether the inside is a measurement or instructions. Its §children§ is whatever the caller writes between the tags.
+        en: `**Composition** means a large view is a tree of small functions. §Panel§ does not know whether the inside is a measurement or instructions. Its §children§ is whatever the caller writes between the tags.
 
 State lives in the component that needs it. If two children show the same number, lift the number to their shared parent and pass it down as props. Do not reach into a child and change it from outside.
 
@@ -282,12 +282,12 @@ State lives in the component that needs it. If two children show the same number
         { fi: "style saa olion, ja nimet ovat camelCase: backgroundColor.", en: "style receives an object, and the names are camelCase: backgroundColor." },
         { fi: "Tyhjä elementti suljetaan itse: <img /> ja <input />.", en: "An empty element closes itself: <img /> and <input />." },
       ],
-      file: "Elementit.jsx",
-      code: `export function Kentta() {
+      file: "Elements.jsx",
+      code: `export function Field() {
   return (
-    <label htmlFor="jannite">
+    <label htmlFor="voltage">
       Jännite
-      <input id="jannite" className="kentta" />
+      <input id="voltage" className="field" />
     </label>
   );
 }`,
@@ -317,8 +317,8 @@ A few names change, because the word is reserved or because JSX is not HTML. The
         { fi: "Pitkä muoto on <Fragment key={id}>, kun listassa tarvitaan avain.", en: "The long form is <Fragment key={id}> when a list needs a key." },
         { fi: "Fragmentille ei voi antaa className-arvoa.", en: "A fragment cannot take a className." },
       ],
-      file: "Fragmentti.jsx",
-      code: `export function Otsake() {
+      file: "Fragment.jsx",
+      code: `export function Heading() {
   return (
     <>
       <h1>Mittaus</h1>
@@ -391,22 +391,22 @@ In production the checks are not run twice. StrictMode is not a style and not a 
       file: "Suspense.jsx",
       code: `import { lazy, Suspense } from "react";
 
-const Kuvaaja = lazy(() => import("./Kuvaaja"));
+const Chart = lazy(() => import("./Chart"));
 
-export function Sivu() {
+export function Page() {
   return (
     <Suspense fallback={<p>Ladataan kuvaajaa…</p>}>
-      <Kuvaaja />
+      <Chart />
     </Suspense>
   );
 }`,
       theory: {
-        fi: `**lazy** jakaa koodin. §lazy(() => import("./Kuvaaja"))§ ei lataa tiedostoa heti, vaan vasta kun komponentti pitää piirtää. Selain hakee silloin erillisen paketin. Ensimmäisellä kerralla komponenttia ei vielä ole, joten React tarvitsee paikan, jossa odotus näkyy.
+        fi: `**lazy** jakaa koodin. §lazy(() => import("./Chart"))§ ei lataa tiedostoa heti, vaan vasta kun komponentti pitää piirtää. Selain hakee silloin erillisen paketin. Ensimmäisellä kerralla komponenttia ei vielä ole, joten React tarvitsee paikan, jossa odotus näkyy.
 
-**Suspense** on se paikka. §fallback§ on elementti odotuksen ajaksi, yleensä lyhyt teksti tai tyhjä kortti. Kun moduuli saapuu, fallback vaihtuu oikeaan komponenttiin. Suspense ei itse hae dataa. Se vain näyttää varan, kun lapsi sanoo olevansa kesken.
+**Suspense** on se paikka. §fallback§ on elementti odotuksen ajaksi, yleensä lyhyt teksti tai tyhjä card. Kun moduuli saapuu, fallback vaihtuu oikeaan komponenttiin. Suspense ei itse hae dataa. Se vain näyttää varan, kun lapsi sanoo olevansa kesken.
 
 >> Älä laiska-lataa jokaista nappia. Lataa harvoin avattava, raskas osa, kuten kuvaaja. Pieni komponentti kannattaa pitää samassa paketissa, jotta sivu ei tee kymmentä pientä hakua.`,
-        en: `**lazy** splits the code. §lazy(() => import("./Kuvaaja"))§ does not load the file immediately, only when the component has to be drawn. The browser then fetches a separate bundle. The first time, the component is not here yet, so React needs a place where the wait is visible.
+        en: `**lazy** splits the code. §lazy(() => import("./Chart"))§ does not load the file immediately, only when the component has to be drawn. The browser then fetches a separate bundle. The first time, the component is not here yet, so React needs a place where the wait is visible.
 
 **Suspense** is that place. §fallback§ is the element for the wait, usually a short text or an empty card. When the module arrives, the fallback is replaced by the real component. Suspense does not fetch data by itself. It only shows a stand-in when a child says it is not ready.
 
@@ -429,7 +429,7 @@ export function Sivu() {
       file: "Effect.jsx",
       code: `import { useEffect, useState } from "react";
 
-export function Kello() {
+export function Clock() {
   const [time, setTime] = useState("");
   useEffect(() => {
     const id = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
@@ -460,30 +460,30 @@ The second argument is the list of values the effect reads. An empty list means:
         en: "useRef keeps a box whose current field does not cause a new draw.",
       },
       points: [
-        { fi: "ref={solmu} inputille antaa solmun current-kenttään piirron jälkeen.", en: "ref={node} on an input puts the node in current after the draw." },
+        { fi: "ref={node} inputille antaa solmun current-kenttään piirron jälkeen.", en: "ref={node} on an input puts the node in current after the draw." },
         { fi: "Älä lue current-arvoa piirron aikana ja oletä, että se on jo päivittynyt.", en: "Do not read current during render and assume it has already updated." },
       ],
       file: "Ref.jsx",
       code: `import { useRef } from "react";
 
-export function Haku() {
-  const kentta = useRef(null);
+export function Search() {
+  const field = useRef(null);
   return (
     <>
-      <input ref={kentta} />
-      <button onClick={() => kentta.current?.focus()}>Kohdista</button>
+      <input ref={field} />
+      <button onClick={() => field.current?.focus()}>Kohdista</button>
     </>
   );
 }`,
       theory: {
-        fi: `**useRef** on laatikko, joka säilyy piirrosta toiseen. §kentta.current§ voi olla DOM-solmu tai mikä tahansa arvo, jonka muutoksen ei pidä piirtää komponenttia uudestaan. Tilasta se eroaa juuri tässä: §setState§ pyytää uuden piirron, ref ei.
+        fi: `**useRef** on laatikko, joka säilyy piirrosta toiseen. §field.current§ voi olla DOM-solmu tai mikä tahansa arvo, jonka muutoksen ei pidä piirtää komponenttia uudestaan. Tilasta se eroaa juuri tässä: §setState§ pyytää uuden piirron, ref ei.
 
-Kun annat §ref={kentta}§ elementille, React kirjoittaa solmun §current§-kenttään sen jälkeen, kun elementti on ruudulla. §kentta.current.focus()§ siirtää kirjoituskohdan kenttään. Jos current on vielä null, elementtiä ei ole ehditty liittää. Siksi kutsu kuuluu tapahtumaan, ei piirron keskelle.
+Kun annat §ref={field}§ elementille, React kirjoittaa solmun §current§-kenttään sen jälkeen, kun elementti on ruudulla. §field.current.focus()§ siirtää kirjoituskohdan kenttään. Jos current on vielä null, elementtiä ei ole ehditty liittää. Siksi kutsu kuuluu tapahtumaan, ei piirron keskelle.
 
 >> Älä käytä refiä tietoon, joka pitää näkyä ruudulla. Nimi, luku ja virheteksti ovat tilaa. Ref on kahva solmuun tai muisti arvolle, jota käyttöliittymä ei näytä.`,
-        en: `**useRef** is a box that survives from one draw to the next. §kentta.current§ can be a DOM node or any value whose change should not draw the component again. It differs from state in exactly that: §setState§ asks for a new draw, a ref does not.
+        en: `**useRef** is a box that survives from one draw to the next. §field.current§ can be a DOM node or any value whose change should not draw the component again. It differs from state in exactly that: §setState§ asks for a new draw, a ref does not.
 
-When you pass §ref={kentta}§ to an element, React writes the node into §current§ after the element is on screen. §kentta.current.focus()§ moves the cursor into the field. If current is still null, the element has not been attached yet. That is why the call belongs in an event, not in the middle of the render.
+When you pass §ref={field}§ to an element, React writes the node into §current§ after the element is on screen. §field.current.focus()§ moves the cursor into the field. If current is still null, the element has not been attached yet. That is why the call belongs in an event, not in the middle of the render.
 
 >> Do not use a ref for information that must show on screen. A name, a number and an error text are state. A ref is a handle to a node, or a memory for a value the interface does not show.`,
       },
@@ -504,27 +504,27 @@ When you pass §ref={kentta}§ to an element, React writes the node into §curre
       file: "Context.jsx",
       code: `import { createContext, useContext } from "react";
 
-const Kieli = createContext("fi");
+const Language = createContext("fi");
 
-export function Sivu() {
+export function Page() {
   return (
-    <Kieli.Provider value="en">
-      <Teksti />
-    </Kieli.Provider>
+    <Language.Provider value="en">
+      <Text />
+    </Language.Provider>
   );
 }
 
-function Teksti() {
-  const kieli = useContext(Kieli);
-  return <p>{kieli}</p>;
+function Text() {
+  const language = useContext(Language);
+  return <p>{language}</p>;
 }`,
       theory: {
-        fi: `**Konteksti** on nimetty arvo, joka näkyy puussa alaspäin. §createContext("fi")§ luo oletuksen. §Provider§ vaihtaa arvon omille lapsilleen. §useContext(Kieli)§ lukee lähimmän Providerin. Ilman Provideria saat oletuksen.
+        fi: `**Konteksti** on nimetty arvo, joka näkyy puussa alaspäin. §createContext("fi")§ luo oletuksen. §Provider§ vaihtaa arvon omille lapsilleen. §useContext(Language)§ lukee lähimmän Providerin. Ilman Provideria saat oletuksen.
 
 Tämä välttää propsien ketjun, jossa viisi välikomponenttia vain siirtää kielen eteenpäin käyttämättä sitä. Kieli, teema ja kirjautunut käyttäjä ovat tyypillisiä. Mittauksen yksittäinen luku ei ole. Se kulkee propsina, koska vain yksi lapsi tarvitsee sitä.
 
 >> Kun Providerin value on uusi olio joka piirrolla, kaikki lukijat piirtyvät uudestaan. Pidä arvona merkkijono, luku tai muista olio §useMemo§-hookilla, jos se ei oikeasti vaihtunut.`,
-        en: `**Context** is a named value that is visible downward through the tree. §createContext("fi")§ creates the default. A §Provider§ replaces the value for its own children. §useContext(Kieli)§ reads the nearest Provider. Without a Provider you get the default.
+        en: `**Context** is a named value that is visible downward through the tree. §createContext("fi")§ creates the default. A §Provider§ replaces the value for its own children. §useContext(Language)§ reads the nearest Provider. Without a Provider you get the default.
 
 This avoids a prop chain where five components in the middle only pass a language onward without using it. Language, theme and the signed-in user are typical. A single measurement is not. It travels as a prop, because only one child needs it.
 
@@ -548,21 +548,21 @@ This avoids a prop chain where five components in the middle only pass a languag
       code: `import { useReducer } from "react";
 
 function reduce(state, action) {
-  if (action.type === "lisaa") return { n: state.n + 1 };
+  if (action.type === "add") return { n: state.n + 1 };
   return state;
 }
 
-export function Laskuri() {
+export function Counter() {
   const [state, dispatch] = useReducer(reduce, { n: 0 });
-  return <button onClick={() => dispatch({ type: "lisaa" })}>{state.n}</button>;
+  return <button onClick={() => dispatch({ type: "add" })}>{state.n}</button>;
 }`,
       theory: {
-        fi: `**useReducer** jakaa tilan kahtia. Reducer-funktio laskee uuden tilan vanhasta ja toiminnosta. Se ei piirrä eikä hae verkosta. §dispatch({ type: "lisaa" })§ lähettää toiminnon, ja React ajaa reducerin ja piirtää uudestaan.
+        fi: `**useReducer** jakaa tilan kahtia. Reducer-funktio laskee uuden tilan vanhasta ja toiminnosta. Se ei piirrä eikä hae verkosta. §dispatch({ type: "add" })§ lähettää toiminnon, ja React ajaa reducerin ja piirtää uudestaan.
 
 Tämä on selkeämpi kuin monta §setState§-kutsua, kun samalla oliolla on useita sääntöjä: lisää, vähennä, nollaa. Jokainen sääntö on yksi haara. Toiminto on tavallinen olio, jonka §type§ nimeää haaran.
 
 >> Älä muuta state-oliota reducerin sisällä. Palauta uusi olio. Jos kirjoitat §state.n = state.n + 1§ ja palautat saman olion, React voi luulla, ettei mikään muuttunut.`,
-        en: `**useReducer** splits state in two. The reducer function computes the new state from the old one and an action. It does not draw and it does not fetch. §dispatch({ type: "lisaa" })§ sends the action, and React runs the reducer and draws again.
+        en: `**useReducer** splits state in two. The reducer function computes the new state from the old one and an action. It does not draw and it does not fetch. §dispatch({ type: "add" })§ sends the action, and React runs the reducer and draws again.
 
 This is clearer than many §setState§ calls when the same object has several rules: add, subtract, reset. Each rule is one branch. An action is an ordinary object whose §type§ names the branch.
 
@@ -585,20 +585,20 @@ This is clearer than many §setState§ calls when the same object has several ru
       file: "Memo.jsx",
       code: `import { useMemo } from "react";
 
-export function Summa({ rivit }) {
-  const yhteensa = useMemo(
-    () => rivit.reduce((sum, rivi) => sum + rivi.virta, 0),
-    [rivit]
+export function Total({ rows }) {
+  const total = useMemo(
+    () => rows.reduce((sum, row) => sum + row.current, 0),
+    [rows]
   );
-  return <p>{yhteensa} A</p>;
+  return <p>{total} A</p>;
 }`,
       theory: {
-        fi: `**useMemo** tallentaa laskun tuloksen. Funktio ajetaan uudestaan vain, kun listan arvo, tässä §rivit§, on vaihtunut. Jos rivit ovat sama taulukko, edellinen summa palautetaan. Tämä auttaa, kun lasku on pitkä. Yhden yhteenlaskun muistaminen ei nopeuta mitään.
+        fi: `**useMemo** tallentaa laskun tuloksen. Funktio ajetaan uudestaan vain, kun listan arvo, tässä §rows§, on vaihtunut. Jos rows ovat sama taulukko, edellinen summa palautetaan. Tämä auttaa, kun lasku on pitkä. Yhden yhteenlaskun muistaminen ei nopeuta mitään.
 
 **useCallback** on sama funktioille. Se palauttaa saman funktion, kunnes riippuvuus vaihtuu. Sitä tarvitaan, kun lapsi on merkitty §memo§-funktiolla ja et halua sen piirtyvän vain siksi, että vanhempi loi uuden funktion.
 
 >> Muistaminen voi itse olla kalliimpaa kuin lasku. Lisää useMemo vasta, kun olet nähnyt turhan työn. Oikea ensimmäinen korjaus on pitää tila siellä, missä sitä käytetään, ei muistaa kaikkea.`,
-        en: `**useMemo** stores the result of a calculation. The function runs again only when a value in the list, here §rivit§, has changed. If the rows are the same array, the previous sum is returned. This helps when the calculation is long. Remembering one addition does not speed anything up.
+        en: `**useMemo** stores the result of a calculation. The function runs again only when a value in the list, here §rows§, has changed. If the rows are the same array, the previous sum is returned. This helps when the calculation is long. Remembering one addition does not speed anything up.
 
 **useCallback** is the same thing for functions. It returns the same function until a dependency changes. You need it when a child is wrapped in §memo§ and you do not want it to draw only because the parent created a new function.
 
@@ -654,10 +654,10 @@ A hook does not share state between callers. Two components that call useToggle 
         { fi: "value ilman onChangea lukitsee kentän.", en: "value without onChange locks the field." },
         { fi: "event.target.value on aina merkkijono.", en: "event.target.value is always a string." },
       ],
-      file: "Lomake.jsx",
+      file: "Form.jsx",
       code: `import { useState } from "react";
 
-export function Jannite() {
+export function Voltage() {
   const [text, setText] = useState("12");
   const volts = Number(text);
   return (
