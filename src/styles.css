@@ -15,6 +15,7 @@
   --color-accent-soft: #e8eefc;
   --color-ink-soft: #8b909a;
   --color-primary: #1d4ed8;
+  --color-primary-fill: #1d4ed8;
   --color-primary-soft: #e8eefc;
   --color-formula: #eef3ff;
   --color-formula-rule: #1d4ed8;
@@ -22,24 +23,25 @@
 
 html.dark {
   color-scheme: dark;
-  --color-bg: #0f1115;
-  --color-paper: #171a20;
-  --color-ink: #ecedef;
-  --color-muted: #c2c5cc;
-  --color-line: #2c313a;
-  --color-control: #6b717c;
-  --color-accent: #7ea2ff;
-  --color-accent-ink: #0f1115;
-  --color-accent-soft: #1c2744;
-  --color-ink-soft: #9a9ea7;
-  --color-primary: #7ea2ff;
-  --color-primary-soft: #1c2744;
-  --color-formula: #1c2744;
-  --color-formula-rule: #7ea2ff;
+  --color-bg: #0e1116;
+  --color-paper: #1b2130;
+  --color-ink: #f2f4f8;
+  --color-muted: #c5cad3;
+  --color-line: #3a4354;
+  --color-control: #8b93a1;
+  --color-accent: #9eb6ff;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #243456;
+  --color-ink-soft: #aeb6c2;
+  --color-primary: #9eb6ff;
+  --color-primary-fill: #1d4ed8;
+  --color-primary-soft: #243456;
+  --color-formula: #1a2744;
+  --color-formula-rule: #9eb6ff;
 }
 
 .brand-mark {
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
   color: #fff;
 }
 
@@ -184,7 +186,7 @@ html.dark .result-panel {
   margin-top: 0.75rem;
   border: 0;
   border-radius: 0.375rem;
-  background: var(--color-primary);
+  background: var(--color-primary-fill);
   color: #fff;
   padding: 0.45rem 0.8rem;
   font-weight: 500;

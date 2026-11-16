@@ -600,7 +600,7 @@ export function KaavastoApp() {
                     onClick={() => setUiLocale(code)}
                     className={clsx(
                       "h-11 rounded px-3 font-mono text-sm",
-                      locale === code ? "bg-primary text-white" : "text-muted",
+                      locale === code ? "bg-primary-fill text-white" : "text-muted",
                     )}
                   >
                     {code.toUpperCase()}
@@ -613,7 +613,7 @@ export function KaavastoApp() {
                   aria-pressed={theme === "light"}
                   aria-label={t(locale, "Vaalea")}
                   onClick={() => setTheme("light")}
-                  className={clsx("grid size-11 place-items-center rounded", theme === "light" ? "bg-primary text-white" : "text-muted")}
+                  className={clsx("grid size-11 place-items-center rounded", theme === "light" ? "bg-primary-fill text-white" : "text-muted")}
                 >
                   <Sun className="size-4" aria-hidden="true" />
                 </button>
@@ -622,7 +622,7 @@ export function KaavastoApp() {
                   aria-pressed={theme === "dark"}
                   aria-label={t(locale, "Tumma")}
                   onClick={() => setTheme("dark")}
-                  className={clsx("grid size-11 place-items-center rounded", theme === "dark" ? "bg-primary text-white" : "text-muted")}
+                  className={clsx("grid size-11 place-items-center rounded", theme === "dark" ? "bg-primary-fill text-white" : "text-muted")}
                 >
                   <Moon className="size-4" aria-hidden="true" />
                 </button>
@@ -714,7 +714,7 @@ export function KaavastoApp() {
                   clearStorage();
                   setClearAsk(false);
                 }}
-                className="h-11 rounded-md bg-primary px-3 text-sm font-medium text-white"
+                className="h-11 rounded-md bg-primary-fill px-3 text-sm font-medium text-white"
               >
                 {t(locale, "Poista")}
               </button>
@@ -785,7 +785,7 @@ export function KaavastoApp() {
                                   onClick={() => selectProgTopic(topic.id)}
                                   className={clsx(
                                     "flex h-10 w-full items-center gap-2 rounded-md px-2 text-left text-sm",
-                                    topicOn ? "bg-primary-soft font-medium text-ink" : "text-muted hover:bg-paper hover:text-ink",
+                                    topicOn ? "bg-primary-soft font-medium text-primary" : "text-muted hover:bg-paper hover:text-ink",
                                   )}
                                 >
                                   <span className="flex-1">{topic.label}</span>
@@ -834,7 +834,7 @@ export function KaavastoApp() {
                                   onClick={() => selectSubFilter(sub.id)}
                                   className={clsx(
                                     "flex h-10 w-full items-center gap-2 rounded-md px-2 text-left text-sm",
-                                    subOn ? "bg-primary-soft font-medium text-ink" : "text-muted hover:bg-paper hover:text-ink",
+                                    subOn ? "bg-primary-soft font-medium text-primary" : "text-muted hover:bg-paper hover:text-ink",
                                   )}
                                 >
                                   <span className="flex-1">{subcategoryLabel(sub.id, locale)}</span>
@@ -1051,7 +1051,7 @@ function Library({
             : t(locale, "Suosikeissa ei ole vielä kaavoja. Merkitse tähti kaavan kohdalle.")}
         </p>
         {query.trim() ? (
-          <button type="button" onClick={onClear} className="mt-5 h-11 rounded-md bg-primary px-4 text-sm font-medium text-white">
+          <button type="button" onClick={onClear} className="mt-5 h-11 rounded-md bg-primary-fill px-4 text-sm font-medium text-white">
             {t(locale, "Tyhjennä haku")}
           </button>
         ) : null}
@@ -1261,7 +1261,7 @@ function Worksheet({
             <h3 className="result-muted font-mono text-xs tracking-widest uppercase">{t(locale, "Tulos")}</h3>
             {result.status === "ok" ? (
               <div className="flex flex-wrap justify-end gap-2">
-                <button type="button" onClick={onSaveCalculation} className="flex h-11 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-white">
+                <button type="button" onClick={onSaveCalculation} className="flex h-11 items-center gap-2 rounded-md bg-primary-fill px-3 text-sm font-medium text-white">
                   {t(locale, "Tallenna työtilaan")}
                 </button>
                 <button

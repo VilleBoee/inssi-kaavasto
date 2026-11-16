@@ -325,7 +325,7 @@ export function WorkspacePanel({
             const next = createWorkspace(locale === "fi" ? `Tehtävä ${file.workspaces.length + 1}` : `Task ${file.workspaces.length + 1}`);
             onFile({ version: 1, activeId: next.id, workspaces: [...file.workspaces, next] });
           }}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-white"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary-fill text-sm font-medium text-white"
         >
           <Plus className="size-4" aria-hidden="true" />
           {t(locale, "Lisää työtila")}
@@ -383,7 +383,7 @@ export function WorkspacePanel({
                 type="button"
                 aria-pressed={workspace.angle === angle}
                 onClick={() => replace({ ...workspace, angle })}
-                className={clsx("h-11 flex-1 rounded text-sm", workspace.angle === angle ? "bg-primary text-white" : "text-muted")}
+                className={clsx("h-11 flex-1 rounded text-sm", workspace.angle === angle ? "bg-primary-fill text-white" : "text-muted")}
               >
                 {angle === "deg" ? t(locale, "Asteet") : t(locale, "Radiaanit")}
               </button>
@@ -454,7 +454,7 @@ export function WorkspacePanel({
           <button
             type="button"
             onClick={() => patch((current) => ({ ...current, blocks: [...current.blocks, { id: createId(), kind: "calc", expr: "" }] }))}
-            className="flex h-11 items-center gap-2 rounded-md bg-primary px-3 text-sm text-white"
+            className="flex h-11 items-center gap-2 rounded-md bg-primary-fill px-3 text-sm text-white"
           >
             <Plus className="size-4" aria-hidden="true" />
             {t(locale, "Lisää lasku")}
@@ -489,7 +489,7 @@ export function WorkspacePanel({
               onChange={(event) => setImportText(event.target.value)}
               aria-label={t(locale, "Tuo data")}
             />
-            <button type="button" onClick={importBase64} className="h-11 rounded-md bg-primary px-3 text-sm font-medium text-white">
+            <button type="button" onClick={importBase64} className="h-11 rounded-md bg-primary-fill px-3 text-sm font-medium text-white">
               {t(locale, "Tuo työtilat")}
             </button>
           </div>

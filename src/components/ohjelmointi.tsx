@@ -180,7 +180,7 @@ export function ProgrammingLesson({
     return (
       <div className="rounded-lg border border-line bg-paper px-6 py-14 text-center">
         <p className="text-lg font-semibold">{t(locale, "Ei esimerkkejä")}</p>
-        <button type="button" onClick={onBack} className="mt-5 h-11 rounded-md bg-primary px-4 text-sm font-medium text-white">
+        <button type="button" onClick={onBack} className="mt-5 h-11 rounded-md bg-primary-fill px-4 text-sm font-medium text-white">
           {t(locale, "Kaikki esimerkit")}
         </button>
       </div>
@@ -255,7 +255,7 @@ export function ProgrammingLesson({
                 type="button"
                 onClick={() => void run()}
                 disabled={running}
-                className="flex h-11 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-white disabled:opacity-60"
+                className="flex h-11 items-center gap-2 rounded-md bg-primary-fill px-3 text-sm font-medium text-white disabled:opacity-60"
               >
                 <Play className="size-4" aria-hidden="true" />
                 {running ? t(locale, "Ajetaan") : t(locale, "Suorita")}
@@ -337,7 +337,7 @@ export function ProgrammingLesson({
           <button
             type="button"
             onClick={() => onOpen(lessonKey(language.id, next.id))}
-            className="h-11 rounded-md bg-primary px-3 text-sm text-white"
+            className="h-11 rounded-md bg-primary-fill px-3 text-sm text-white"
           >
             {tx(locale, next.title)}
           </button>
