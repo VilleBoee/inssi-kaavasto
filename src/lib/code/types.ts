@@ -1,12 +1,28 @@
 export type Copy = { fi: string; en: string };
 
-export type TopicId = "perusteet" | "ohjaus" | "tieto" | "rakenne";
+export type TopicId =
+  | "perusteet"
+  | "ohjaus"
+  | "tieto"
+  | "rakenne"
+  | "asettelu"
+  | "selain"
+  | "komponentit"
+  | "hookit"
+  | "kysely"
+  | "skeema";
 
 export const TOPICS: Record<TopicId, Copy> = {
   perusteet: { fi: "Perusteet", en: "Basics" },
   ohjaus: { fi: "Ohjaus", en: "Control flow" },
   tieto: { fi: "Tieto", en: "Data" },
   rakenne: { fi: "Rakenne", en: "Structure" },
+  asettelu: { fi: "Asettelu", en: "Layout" },
+  selain: { fi: "Selain", en: "Browser" },
+  komponentit: { fi: "Komponentit", en: "Components" },
+  hookit: { fi: "Hookit", en: "Hooks" },
+  kysely: { fi: "Kyselyt", en: "Queries" },
+  skeema: { fi: "Skeema", en: "Schema" },
 };
 
 export type Lesson = {
@@ -19,7 +35,7 @@ export type Lesson = {
   code: string;
   output?: string;
   note?: Copy;
-  /** Longer reading. Paragraphs separated by a blank line. Markup: **bold**, *italic*, `code`, [[term]], and a paragraph starting with ">> ". */
+  /** Longer reading. Paragraphs separated by a blank line. Markup: **bold**, *italic*, §code§, [[term]], [[label|formula-id]] and a paragraph starting with ">> ". */
   theory?: Copy;
   tags: string[];
 };

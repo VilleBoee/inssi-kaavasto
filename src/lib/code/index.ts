@@ -1,16 +1,16 @@
 import type { Locale } from "@/lib/i18n";
-import { c } from "./c";
 import { cpp } from "./cpp";
-import { java } from "./java";
+import { css } from "./css";
+import { html } from "./html";
 import { javascript } from "./javascript";
-import { python } from "./python";
+import { react } from "./react";
 import { sql } from "./sql";
 import { TOPICS, type Copy, type Language, type Lesson, type TopicId } from "./types";
 
 export type { Copy, Language, Lesson, TopicId } from "./types";
 export { TOPICS };
 
-export const LANGUAGES: Language[] = [javascript, python, cpp, java, c, sql];
+export const LANGUAGES: Language[] = [html, css, javascript, react, cpp, sql];
 
 const BY_ID = new Map(LANGUAGES.map((language) => [language.id, language]));
 

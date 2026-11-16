@@ -361,4 +361,40 @@ A function parameter §int&§ is the same idea in an interface. The call §add(c
 
 >> An array is reserved as §new int[n]§ and freed with §delete[]§. A plain delete does not free an array correctly. If the size changes at run time, §std::vector§ does the same job without a delete call. Use new only when vector is not available.`,
   },
+  classes: {
+    fi: `**Luokka** kokoaa datan ja siihen kuuluvat funktiot. §class Meter§ kuvaa mittarin. Kentät ovat §private:§, jotta ulkopuolinen ei kirjoita niitä suoraan. Julkinen metodi §read§ on se tapa, jolla arvo kysytään.
+
+Olion luonti §Meter meter(12)§ kutsuu konstruktoria. Konstruktori kirjoittaa alkuarvot. Metodia kutsutaan pisteellä: §meter.volts()§. Metodi saa piilotetun osoittimen tähän olioon, joten se näkee omat kenttänsä ilman parametria.
+
+>> Älä tee kaikesta luokkaa. Yksi tietue ja vapaat funktiot riittävät, kun mukana ei ole sääntöä, jonka olion pitää itse valvoa. Luokka kannattaa, kun kentän arvolla on ehto, esimerkiksi jännite ei saa olla negatiivinen.`,
+    en: `A **class** gathers data and the functions that belong to it. §class Meter§ describes a meter. The fields are §private:§, so outside code does not write them directly. A public method §read§ is the way the value is asked.
+
+Creating an object §Meter meter(12)§ calls the constructor. The constructor writes the starting values. A method is called with a dot: §meter.volts()§. The method gets a hidden pointer to this object, so it sees its own fields without a parameter.
+
+>> Do not make everything a class. One record and free functions are enough when there is no rule the object must enforce itself. A class is worth it when a field has a condition, for example a voltage that must not be negative.`,
+  },
+  files: {
+    fi: `**Tiedosto** luetaan ja kirjoitetaan vuona, samaan tapaan kuin cin ja cout. §std::ifstream in("mittaus.txt")§ avaa tiedoston lukemista varten. Tarkista §if (!in)§ heti. Jos tiedostoa ei ole, vuon tila on virhe, ja luku ei tuota lukuja.
+
+§in >> voltage§ lukee seuraavan luvun ja ohittaa välin. Rivi kerrallaan luetaan §std::getline(in, line)§. Kirjoitus on §std::ofstream out("tulos.txt")§ ja §out << voltage§. Tiedosto sulkeutuu, kun virta tuhoutuu lohkon lopussa.
+
+>> Polku on suhteessa siihen kansioon, josta ohjelma käynnistettiin, ei siihen kansioon, jossa lähdekoodi on. Jos avaus epäonnistuu, tulosta polku. Usein ohjelma etsii väärästä paikasta.`,
+    en: `A **file** is read and written as a stream, the same way as cin and cout. §std::ifstream in("mittaus.txt")§ opens a file for reading. Check §if (!in)§ immediately. If the file is missing, the stream is in an error state and a read does not produce numbers.
+
+§in >> voltage§ reads the next number and skips whitespace. A whole line is read with §std::getline(in, line)§. Writing is §std::ofstream out("tulos.txt")§ and §out << voltage§. The file closes when the stream is destroyed at the end of the block.
+
+>> The path is relative to the folder from which the program was started, not the folder where the source code lives. If opening fails, print the path. Often the program is looking in the wrong place.`,
+  },
+  exceptions: {
+    fi: `**Poikkeus** on tapa ilmoittaa, että funktio ei voinut tehdä työtään. §throw std::runtime_error("tyhjä")§ hyppää ulos funktiosta siihen §catch§-lohkoon, jonka tyyppi sopii. §try§ rajaa alueen, jossa heitto otetaan kiinni.
+
+Tavallinen paluuarvo sopii odotettuun vaihtoehtoon, kuten *ei löytynyt*. Poikkeus sopii tilanteeseen, jota kutsujan pitää käsitellä heti tai ohjelma ei voi jatkaa. Älä käytä poikkeusta silmukan tavallisena loppuna.
+
+>> Ota kiinni viittauksella: §catch (const std::exception& error)§. Kopio leikkaa periytymisestä sen tyypin, jonka catch nimesi. §error.what()§ on teksti. Jos kukaan ei ota poikkeusta kiinni, ohjelma päättyy.`,
+    en: `An **exception** is a way to say that a function could not do its job. §throw std::runtime_error("tyhjä")§ jumps out of the function to a §catch§ block whose type matches. §try§ marks the region where the throw is caught.
+
+An ordinary return value fits an expected alternative, such as *not found*. An exception fits a situation the caller must handle immediately, or the program cannot continue. Do not use an exception as the ordinary end of a loop.
+
+>> Catch by reference: §catch (const std::exception& error)§. A copy slices away the derived type and leaves the type the catch named. §error.what()§ is the text. If nobody catches the exception, the program ends.`,
+  },
 };

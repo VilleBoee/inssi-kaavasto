@@ -23,9 +23,8 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { BiLogoCPlusPlus } from "react-icons/bi";
-import { RiJavaLine, RiJavascriptLine } from "react-icons/ri";
-import { SiC } from "react-icons/si";
-import { TbBrandPython, TbSql } from "react-icons/tb";
+import { RiJavascriptLine } from "react-icons/ri";
+import { TbBrandCss3, TbBrandHtml5, TbBrandReact, TbSql } from "react-icons/tb";
 import type { IconType } from "react-icons";
 import {
   CATEGORIES,
@@ -135,11 +134,11 @@ function loadList(key: string): string[] {
 function LanguageGlyph({ id }: { id: string }) {
   const icons: Record<string, IconType> = {
     js: RiJavascriptLine,
-    python: TbBrandPython,
     cpp: BiLogoCPlusPlus,
-    java: RiJavaLine,
-    c: SiC,
     sql: TbSql,
+    html: TbBrandHtml5,
+    css: TbBrandCss3,
+    react: TbBrandReact,
   };
   const Icon = icons[id];
   if (!Icon) return <BookOpen className="size-4 shrink-0" aria-hidden="true" />;

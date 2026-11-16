@@ -958,6 +958,102 @@ int main() {
       tags: ["vector", "push_back", "taulukko"],
     },
     {
+      id: "classes",
+      topic: "rakenne",
+      title: { fi: "Luokka", en: "A class" },
+      blurb: {
+        fi: "Luokka kokoaa kentät ja metodit. private piilottaa kentän. Julkinen metodi on se tapa, jolla olioa käytetään.",
+        en: "A class gathers fields and methods. private hides a field. A public method is the way the object is used.",
+      },
+      points: [
+        { fi: "Konstruktori saa saman nimen kuin luokka ja alustaa kentät.", en: "The constructor has the same name as the class and initialises the fields." },
+        { fi: "Metodia kutsutaan pisteellä: meter.volts().", en: "A method is called with a dot: meter.volts()." },
+      ],
+      file: "luokka.cpp",
+      code: `#include <iostream>
+
+class Meter {
+public:
+    explicit Meter(double volts) : volts_(volts) {}
+    double volts() const { return volts_; }
+private:
+    double volts_;
+};
+
+int main() {
+    Meter meter(12);
+    std::cout << meter.volts() << "\\n";
+    return 0;
+}`,
+      output: `12`,
+      tags: ["class", "private", "constructor", "luokka", "olio"],
+    },
+    {
+      id: "files",
+      topic: "tieto",
+      title: { fi: "Tiedostot", en: "Files" },
+      blurb: {
+        fi: "ifstream lukee tiedoston ja ofstream kirjoittaa sen. Tarkista heti, että avaus onnistui.",
+        en: "ifstream reads a file and ofstream writes it. Check immediately that the open succeeded.",
+      },
+      points: [
+        { fi: "Polku on suhteessa käynnistyskansioon, ei lähdekoodin kansioon.", en: "The path is relative to the folder you started from, not the source folder." },
+        { fi: "getline lukee rivin. Operaattori >> lukee seuraavan sanan tai luvun.", en: "getline reads a line. The >> operator reads the next word or number." },
+      ],
+      file: "tiedosto.cpp",
+      code: `#include <fstream>
+#include <iostream>
+#include <string>
+
+int main() {
+    std::ifstream in("mittaus.txt");
+    if (!in) {
+        std::cerr << "ei tiedostoa\\n";
+        return 1;
+    }
+    std::string line;
+    std::getline(in, line);
+    std::cout << line << "\\n";
+    return 0;
+}`,
+      output: `(mittaus.txt:n ensimmäinen rivi)`,
+      tags: ["ifstream", "ofstream", "getline", "tiedosto", "file"],
+    },
+    {
+      id: "exceptions",
+      topic: "ohjaus",
+      title: { fi: "Poikkeukset", en: "Exceptions" },
+      blurb: {
+        fi: "throw hyppää ulos funktiosta. try ja catch ottavat std::exception-viittauksen kiinni.",
+        en: "throw jumps out of the function. try and catch take a std::exception reference.",
+      },
+      points: [
+        { fi: "Ota kiinni viittauksella, älä kopiona.", en: "Catch by reference, not by copy." },
+        { fi: "what() palauttaa tekstin, joka annettiin runtime_error-oliolle.", en: "what() returns the text given to the runtime_error." },
+      ],
+      file: "poikkeus.cpp",
+      code: `#include <iostream>
+#include <stdexcept>
+
+double positive(double value) {
+    if (value < 0) throw std::runtime_error("negatiivinen");
+    return value;
+}
+
+int main() {
+    try {
+        std::cout << positive(12) << "\\n";
+        std::cout << positive(-1) << "\\n";
+    } catch (const std::exception& error) {
+        std::cout << error.what() << "\\n";
+    }
+    return 0;
+}`,
+      output: `12
+negatiivinen`,
+      tags: ["throw", "try", "catch", "exception", "poikkeus"],
+    },
+    {
       id: "pitfalls",
       topic: "rakenne",
       title: { fi: "Yleiset virheet", en: "Common mistakes" },

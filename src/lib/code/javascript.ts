@@ -291,6 +291,181 @@ console.log(credits);`,
       tags: ["async", "await", "promise", "fetch"],
     },
     {
+      id: "destructuring",
+      topic: "tieto",
+      title: { fi: "Purku", en: "Destructuring" },
+      blurb: {
+        fi: "Aaltosulkeet tai hakasulkeet vasemmalla ottavat oliosta tai taulukosta omat nimet.",
+        en: "Braces or brackets on the left pull individual names out of an object or an array.",
+      },
+      points: [
+        { fi: "Oliossa nimi vastaa kenttää. Kaksoispiste antaa sille toisen muuttujanimen.", en: "In an object the name matches the field. A colon gives it a different variable name." },
+        { fi: "Oletus kirjoitetaan yhtäsuuruusmerkillä purun sisään.", en: "A default is written with an equals sign inside the pattern." },
+      ],
+      file: "purku.js",
+      code: `const student = { name: "Aino", credits: 55 };
+const { name, credits } = student;
+const scores = [4, 8, 15];
+const [first] = scores;
+console.log(name);
+console.log(first);`,
+      output: `Aino
+4`,
+      tags: ["destructuring", "purku", "object", "array"],
+    },
+    {
+      id: "scope",
+      topic: "rakenne",
+      title: { fi: "Näkyvyys", en: "Scope" },
+      blurb: {
+        fi: "let ja const elävät lohkossa. Sisempi funktio näkee ulomman nimet ja muistaa ne kutsun jälkeenkin.",
+        en: "let and const live in the block. An inner function sees the outer names and remembers them after the call.",
+      },
+      points: [
+        { fi: "Sisempi samanniminen muuttuja peittää ulomman.", en: "An inner variable with the same name hides the outer one." },
+        { fi: "Parametri ei näy funktion ulkopuolelle.", en: "A parameter is not visible outside the function." },
+      ],
+      file: "nakyvyys.js",
+      code: `function makeAdder(start) {
+  return (step) => start + step;
+}
+const add = makeAdder(10);
+console.log(add(5));`,
+      output: `15`,
+      tags: ["scope", "closure", "näkyvyys", "let", "block"],
+    },
+    {
+      id: "errors",
+      topic: "ohjaus",
+      title: { fi: "Virheet", en: "Errors" },
+      blurb: {
+        fi: "throw keskeyttää funktion. try ja catch ottavat virheen kiinni. finally ajetaan joka tapauksessa.",
+        en: "throw interrupts the function. try and catch take the error. finally runs either way.",
+      },
+      points: [
+        { fi: "error.message on se teksti, jonka annoit Error-oliolle.", en: "error.message is the text you gave the Error object." },
+        { fi: "Tyhjä catch piilottaa vian. Kirjoita, mitä tapahtuu seuraavaksi.", en: "An empty catch hides the fault. Write what happens next." },
+      ],
+      file: "virheet.js",
+      code: `function readCount(text) {
+  const n = Number(text);
+  if (Number.isNaN(n)) throw new Error("ei luku");
+  return n;
+}
+try {
+  console.log(readCount("12"));
+  console.log(readCount("xx"));
+} catch (error) {
+  console.log(error.message);
+}`,
+      output: `12
+ei luku`,
+      tags: ["try", "catch", "throw", "error", "virhe"],
+    },
+    {
+      id: "modules",
+      topic: "rakenne",
+      title: { fi: "Moduulit", en: "Modules" },
+      blurb: {
+        fi: "export julkaisee nimen tiedostosta. import hakee sen toisessa tiedostossa.",
+        en: "export publishes a name from a file. import fetches it in another file.",
+      },
+      points: [
+        { fi: "Aaltosulkeissa oleva nimi on nimetty vienti.", en: "A name in braces is a named export." },
+        { fi: "Oma tiedosto haetaan polulla, joka alkaa pisteellä.", en: "Your own file is fetched with a path that starts with a dot." },
+      ],
+      file: "area.js",
+      code: `function area(width, height) {
+  return width * height;
+}
+
+console.log(area(3, 4));`,
+      output: `12`,
+      note: {
+        fi: "Esimerkki näyttää viennin ja tuonnin peräkkäin. Oikeasti ne ovat kahdessa tiedostossa.",
+        en: "The sample shows the export and the import one after the other. In a real project they live in two files.",
+      },
+      tags: ["import", "export", "module", "moduuli"],
+    },
+    {
+      id: "dom",
+      topic: "selain",
+      title: { fi: "DOM", en: "The DOM" },
+      blurb: {
+        fi: "document.querySelector etsii elementin. textContent lukee ja vaihtaa sen tekstin.",
+        en: "document.querySelector finds an element. textContent reads and replaces its text.",
+      },
+      points: [
+        { fi: "Tulos on null, jos valitsin ei osu. Tarkista se.", en: "The result is null when the selector misses. Check it." },
+        { fi: "createElement ja append lisäävät elementin puuhun.", en: "createElement and append add an element to the tree." },
+      ],
+      file: "dom.js",
+      code: `if (typeof document === "undefined") {
+  console.log("aja selaimen sivulla");
+} else {
+  const title = document.querySelector("h1");
+  if (title) title.textContent = "Mittaus";
+}`,
+      output: `aja selaimen sivulla`,
+      note: {
+        fi: "Tämä ajuri ei ole selain. Esimerkki näyttää kutsut, joilla sivua muutetaan selaimessa.",
+        en: "This runner is not a browser. The sample shows the calls that change a page in the browser.",
+      },
+      tags: ["dom", "queryselector", "document", "selain"],
+    },
+    {
+      id: "events",
+      topic: "selain",
+      title: { fi: "Tapahtumat", en: "Events" },
+      blurb: {
+        fi: "addEventListener rekisteröi funktion.click kutsuu sitä myöhemmin. preventDefault estää lomakkeen lähetyksen.",
+        en: "addEventListener registers a function. click calls it later. preventDefault stops the form from being sent.",
+      },
+      points: [
+        { fi: "Älä kirjoita sulkeita funktion nimen perään rekisteröinnissä.", en: "Do not write parentheses after the function name when you register it." },
+        { fi: "event.target on se elementti, jota käyttäjä käytti.", en: "event.target is the element the user used." },
+      ],
+      file: "events.js",
+      code: `if (typeof document === "undefined") {
+  console.log("aja selaimen sivulla");
+} else {
+  const form = document.querySelector("form");
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    console.log(new FormData(form).get("jannite"));
+  });
+}`,
+      output: `aja selaimen sivulla`,
+      tags: ["addeventlistener", "click", "submit", "preventdefault", "tapahtuma"],
+    },
+    {
+      id: "fetch",
+      topic: "selain",
+      title: { fi: "fetch", en: "fetch" },
+      blurb: {
+        fi: "fetch hakee osoitteen. response.json lukee rungon. response.ok kertoo, onko tilakoodi onnistunut.",
+        en: "fetch requests an address. response.json reads the body. response.ok says whether the status succeeded.",
+      },
+      points: [
+        { fi: "404 ei heitä poikkeusta. Tarkista response.ok.", en: "A 404 does not throw. Check response.ok." },
+        { fi: "Kaksi await-sanaa: ensin vastaus, sitten runko.", en: "Two awaits: first the response, then the body." },
+      ],
+      file: "fetch.js",
+      code: `async function load(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("haku epäonnistui");
+  return response.json();
+}
+
+console.log("ensin vastaus, sitten response.json()");`,
+      output: `ensin vastaus, sitten response.json()`,
+      note: {
+        fi: "Tämä näkymä ei avaa verkkoyhteyttä. Aja fetch selaimen sivulla.",
+        en: "This view does not open a network connection. Run fetch on a page in the browser.",
+      },
+      tags: ["fetch", "json", "http", "api", "await"],
+    },
+    {
       id: "pitfalls",
       topic: "rakenne",
       title: { fi: "Yleiset virheet", en: "Common mistakes" },

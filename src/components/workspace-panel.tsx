@@ -7,10 +7,9 @@ import { formatNum } from "@/lib/formulas/shared";
 import { subcategoryLabel, t, type Locale } from "@/lib/i18n";
 import { parseDisplayNumber, serializeExpr, validVariableName, type ExprError, type MathNode } from "@/lib/expr";
 import {
+  blockResult,
   createId,
   createWorkspace,
-  environmentUntil,
-  lineValue,
   normalizeFile,
   type Block,
   type Workspace,
@@ -44,6 +43,7 @@ const CALC_HELP: { title: string; rows: [string, string][] }[] = [
       ["U = 12", "Muuttuja myöhemmille riveille"],
       ["π -> kulma", "Anna vakiolle oma nimi"],
       ["2x = 20", "Lineaarinen yhtälö, yksi tuntematon"],
+      ["2x + y = 10", "Yhtälöpari. Seuraava rivi, esimerkiksi x − y = 2."],
     ],
   },
 ];
@@ -135,6 +135,8 @@ function errorText(locale: Locale, error: ExprError, detail?: string): string {
   if (error === "domain") return t(locale, "Arvo ei kelpaa tälle funktiolle.");
   if (error === "assign") return t(locale, "Tätä nimeä ei voi käyttää muuttujana.");
   if (error === "many") return t(locale, "Yhtälössä voi olla vain yksi tuntematon.");
+  if (error === "pair" && detail === "next") return t(locale, "Ratkaistaan yhtälöparina seuraavan rivin kanssa.");
+  if (error === "pair") return t(locale, "Yhtälöpariin tarvitaan toinen yhtälö seuraavalle riville.");
   if (error === "none" && detail === "mismatch") return t(locale, "Sivut eivät ole yhtä suuret.");
   if (error === "none") return t(locale, "Yhtälöä ei voitu ratkaista. Lineaarinen muoto, esimerkiksi 2x = 20, toimii.");
   if (error === "eq") return t(locale, "Yhtälö on tosi kaikilla arvoilla, joten tuntematonta ei voi ratkaista.");
@@ -158,11 +160,13 @@ function solutionText(workspace: Workspace, locale: Locale): string {
       return;
     }
     if (block.kind === "calc") {
-      const result = lineValue(block, environmentUntil(workspace.blocks, index, workspace.angle), workspace.angle);
+      const result = blockResult(workspace.blocks, index, workspace.angle);
       if (!block.expr.trim()) return;
       lines.push(block.expr.trim());
       if (result?.ok && result.steps.length > 1) lines.push(result.steps.map((step) => serializeExpr(step)).join(" → "));
-      if (result?.ok) lines.push(`= ${formatNum(result.value)}`);
+      if (result?.ok && result.bindings && result.bindings.length > 1) {
+        lines.push(result.bindings.map((item) => `${item.name} = ${formatNum(item.value)}`).join(", "));
+      } else if (result?.ok) lines.push(`${result.name ? `${result.name} = ` : "= "}${formatNum(result.value)}`);
       else if (result && !result.ok) lines.push(errorText(locale, result.error, result.detail));
       lines.push("");
       return;
@@ -412,7 +416,7 @@ export function WorkspacePanel({
               {block.kind === "calc" ? (
                 <CalcRow
                   expr={block.expr}
-                  result={lineValue(block, environmentUntil(workspace.blocks, index, workspace.angle), workspace.angle)}
+                  result={blockResult(workspace.blocks, index, workspace.angle)}
                   onChange={(expr) => updateBlock(block.id, (item) => (item.kind === "calc" ? { ...item, expr } : item))}
                   onSplit={(lines) =>
                     patch((current) => {
@@ -513,7 +517,7 @@ function CalcRow({
   onSplit,
 }: {
   expr: string;
-  result: ReturnType<typeof lineValue>;
+  result: ReturnType<typeof blockResult>;
   onChange: (expr: string) => void;
   onSplit: (lines: string[]) => void;
 }) {
@@ -531,7 +535,15 @@ function CalcRow({
           onChange={(event) => onChange(event.target.value)}
         />
       </label>
-      {result?.ok ? (
+      {result?.ok && result.bindings && result.bindings.length > 1 ? (
+        <ul className="flex flex-col gap-1">
+          {result.bindings.map((item) => (
+            <li key={item.name} className="font-mono text-lg font-medium text-accent tabular-nums">
+              {item.name} = {formatNum(item.value)}
+            </li>
+          ))}
+        </ul>
+      ) : result?.ok ? (
         <p className="font-mono text-lg font-medium text-accent tabular-nums">
           {result.name ? `${result.name} = ` : "= "}
           {formatNum(result.value)}
@@ -553,7 +565,7 @@ function CalcRow({
             className="mt-2 h-11 rounded-md border border-line bg-paper px-3 text-sm"
             onClick={() => {
               const lines = steps.map((step) => serializeExpr(step));
-              if (result?.ok && result.name) lines[lines.length - 1] = `${result.name} = ${lines[lines.length - 1]}`;
+              if (result?.ok && result.name && !(result.bindings && result.bindings.length > 1)) lines[lines.length - 1] = `${result.name} = ${lines[lines.length - 1]}`;
               onSplit(lines);
             }}
           >

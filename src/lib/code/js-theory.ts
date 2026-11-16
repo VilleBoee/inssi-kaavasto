@@ -146,4 +146,88 @@ Without the word await you see a Promise, not a number. A failure is caught with
 
 >> §for (var i = 0; ...)§ shares one i variable across every round. An i read later is the loop's final value. Write §let§, and each round has its own index.`,
   },
+  destructuring: {
+    fi: `**Purku** ottaa oliosta tai taulukosta palan omiin nimiin. §const { name, credits } = student§ tekee kaksi muuttujaa. Nimen pitää täsmätä kentän nimeen. §const { name: full } = student§ antaa kentälle name oman nimen full.
+
+Taulukko purkautuu järjestyksessä. §const [first, second] = scores§ ottaa kaksi ensimmäistä. Ylimääräiset alkiot jäävät käyttämättä. Voit ohittaa kohdan tyhjällä paikalla: §const [, second] = scores§.
+
+>> Funktion parametri voi purkaa heti: §function show({ name })§. Kutsuja antaa yhä olion. Funktion sisällä name on jo irrotettu. Jos kenttää ei ole, arvo on undefined, ellet anna oletusta §{ name = "nimetön" }§.`,
+    en: `**Destructuring** takes a piece of an object or an array into its own names. §const { name, credits } = student§ creates two variables. The name has to match the field. §const { name: full } = student§ gives the field name its own name full.
+
+An array unpacks in order. §const [first, second] = scores§ takes the first two. Extra items are left unused. You can skip a place with an empty slot: §const [, second] = scores§.
+
+>> A function parameter can unpack immediately: §function show({ name })§. The caller still passes an object. Inside the function name is already pulled out. If the field is missing, the value is undefined, unless you give a default §{ name = "nimetön" }§.`,
+  },
+  scope: {
+    fi: `**Näkyvyys** on se alue, jossa nimi on olemassa. §let§ ja §const§ elävät aaltosulkeiden välissä. Silmukan sisällä luotu nimi ei näy silmukan jälkeen. Ulompi nimi näkyy sisempään lohkoon, ellei sisempi luo samannimistä.
+
+Funktio luo oman alueensa. Parametri on olemassa vain funktion ajan. Sisempi funktio näkee ulomman funktion nimet. Tätä kutsutaan sulkeumaksi. Sisempi funktio muistaa ne, vaikka ulompi olisi jo päättynyt.
+
+>> Älä luo samannimistä muuttujaa sisempään lohkoon vahingossa. Se peittää ulomman, ja sijoitus ei muuta sitä muuttujaa, jota luulit muuttavasi. Nimeä eri asiat eri nimillä.`,
+    en: `**Scope** is the region where a name exists. §let§ and §const§ live between braces. A name created inside a loop is not visible after the loop. An outer name is visible in an inner block, unless the inner block creates the same name.
+
+A function creates its own region. A parameter exists only for the call. An inner function can see the outer function's names. That is a closure. The inner function remembers them even after the outer function has finished.
+
+>> Do not accidentally create the same name in an inner block. It hides the outer one, and an assignment does not change the variable you thought you were changing. Name different things differently.`,
+  },
+  errors: {
+    fi: `**Poikkeus** keskeyttää tavallisen etenemisen. §throw new Error("tyhjä")§ hyppää lähimpään §catch§-lohkoon. §try§ on se alue, jossa virhe saa tapahtua. §finally§ ajetaan sen jälkeen joka tapauksessa, onnistui tai ei.
+
+Virhe on olio. §error.message§ on teksti, jonka annoit. Älä nielaise virhettä tyhjällä catch-lohkolla. Kirjoita siihen, mitä ohjelma tekee seuraavaksi: oletusarvo, viesti käyttäjälle tai uusi heitto.
+
+>> §JSON.parse§ heittää, jos teksti ei ole JSON. Jako nollalla ei heitä: luvun jako nollalla tuottaa Infinity tai NaN. Kun teksti tulee käyttäjältä, tarkista parse try-lohkossa.`,
+    en: `An **exception** interrupts ordinary progress. §throw new Error("tyhjä")§ jumps to the nearest §catch§ block. §try§ is the region where the failure is allowed to happen. §finally§ runs afterwards either way, success or not.
+
+An error is an object. §error.message§ is the text you gave. Do not swallow an error with an empty catch. Write what the program does next: a default, a message to the user, or a new throw.
+
+>> §JSON.parse§ throws when the text is not JSON. Dividing a number by zero does not throw: it produces Infinity or NaN. When the text comes from a user, check parse inside a try block.`,
+  },
+  modules: {
+    fi: `**Moduuli** on tiedosto, joka kertoo julkiset nimensä. §export function area...§ tekee funktiosta käytettävän muualle. §import { area } from "./area.js"§ hakee sen. Nimi aaltosulkeissa on se, mikä exportissa lukee.
+
+Oletusvienti on yksi nimi tiedostoa kohti: §export default function App§. Silloin tuonti on ilman aaltosulkeita. Älä sekoita tapoja samassa nimessä. Selaimessa moduuli ladataan §<script type="module">§-tunnisteella.
+
+>> Polku alkaa pisteellä, kun tiedosto on oma. §./area.js§ on sama kansio. Ilman päätettä tai ilman pistettä selain etsii pakettia, ei sinun tiedostoa. Moduulin koodi ajetaan kerran, vaikka sen toisi useasta paikasta.`,
+    en: `A **module** is a file that states its public names. §export function area...§ makes the function usable elsewhere. §import { area } from "./area.js"§ fetches it. The name in braces is the one written in the export.
+
+A default export is one name per file: §export default function App§. Then the import has no braces. Do not mix the two styles for the same name. In the browser a module is loaded with §<script type="module">§.
+
+>> A path starts with a dot when the file is yours. §./area.js§ is the same folder. Without the ending, or without the dot, the browser looks for a package, not your file. A module's code runs once, even if several files import it.`,
+  },
+  dom: {
+    fi: `**DOM** on selaimen puu sivun HTML:stä. §document.querySelector("h1")§ etsii ensimmäisen otsikon ja palauttaa elementin. Jos sitä ei ole, tulos on null. Tarkista null ennen kuin luet §textContent§.
+
+§textContent§ on elementin teksti. Sijoitus vaihtaa sen. §document.createElement("li")§ luo uuden kohdan, ja §list.append(item)§ liittää sen listan loppuun. Tämä muuttaa sivua ilman, että kirjoitat koko HTML:n uudestaan.
+
+>> Älä etsi elementtiä, ennen kuin HTML on luettu. Skripti bodyn lopussa tai §defer§ näkee valmiin puun. Jos querySelector palauttaa null, valitsin ei täsmää tai skripti ehti ensin.`,
+    en: `The **DOM** is the browser's tree of the page's HTML. §document.querySelector("h1")§ finds the first heading and returns the element. If it is missing, the result is null. Check for null before you read §textContent§.
+
+§textContent§ is the element's text. An assignment replaces it. §document.createElement("li")§ creates a new item, and §list.append(item)§ attaches it to the end of the list. This changes the page without you rewriting the whole HTML.
+
+>> Do not look up an element before the HTML has been read. A script at the end of the body, or with §defer§, sees the finished tree. If querySelector returns null, the selector does not match or the script ran too early.`,
+  },
+  events: {
+    fi: `**Tapahtuma** on ilmoitus, että käyttäjä teki jotain. §button.addEventListener("click", onClick)§ rekisteröi funktion. Selain kutsuu sitä myöhemmin. Älä kutsu funktiota itse rekisteröinnin kohdalla.
+
+Funktio saa tapahtumaolion. §event.target§ on se elementti, jota napsautettiin. Lomakkeella §event.preventDefault()§ estää sivun uudelleenlatauksen, jotta ehdit lukea kentät itse. Kentän arvo on §input.value§, ja se on merkkijono.
+
+>> Yksi kuuntelija riittää listalle, jos luet event.target. Silloin uudet kohdat eivät tarvitse omaa kuuntelijaa. Tätä kutsutaan tapahtuman kuplimiseksi: napsautus nousee lapsesta vanhemmalle.`,
+    en: `An **event** is a notice that the user did something. §button.addEventListener("click", onClick)§ registers a function. The browser calls it later. Do not call the function yourself at the registration.
+
+The function receives an event object. §event.target§ is the element that was clicked. On a form, §event.preventDefault()§ stops the page from reloading, so you have time to read the fields yourself. A field's value is §input.value§, and it is a string.
+
+>> One listener is enough for a list if you read event.target. Then new items do not need their own listener. This is called bubbling: the click climbs from the child to the parent.`,
+  },
+  fetch: {
+    fi: `**fetch** pyytää osoitteen ja palauttaa Promisen. §await fetch(url)§ antaa vastausolion, ei vielä dataa. §await response.json()§ lukee rungon JSONiksi. Tarkista §response.ok§ ennen kuin luet runkoa. Virhekoodi 404 ei heitä poikkeusta.
+
+Osoite on merkkijono. Sama palvelin voi olla suhteellinen polku §/api/opiskelijat§. Toinen palvelin vaatii, että palvelin sallii kutsun. Selain estää sen muuten. Tässä näkymässä verkkoon ei pääse, joten oikea fetch kuuluu selaimeen.
+
+>> Älä jätä await-sanaa pois kummastakaan vaiheesta. Ilman ensimmäistä näet Promisen. Ilman toista näet vastausolion, jonka kentissä ei ole vielä opiskelijan nimeä. Molemmat vaiheet voivat epäonnistua, joten ne kuuluvat samaan try-lohkoon.`,
+    en: `**fetch** requests an address and returns a Promise. §await fetch(url)§ gives a response object, not the data yet. §await response.json()§ reads the body as JSON. Check §response.ok§ before you read the body. A 404 status does not throw.
+
+The address is a string. The same server can be a relative path §/api/opiskelijat§. Another server requires that the server allows the call. The browser blocks it otherwise. This view has no network, so a real fetch belongs in the browser.
+
+>> Do not leave out await on either step. Without the first you see a Promise. Without the second you see a response object whose fields do not yet hold the student's name. Both steps can fail, so they belong in the same try block.`,
+  },
 };

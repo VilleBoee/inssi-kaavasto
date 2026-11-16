@@ -638,4 +638,67 @@ export const tieto: Formula[] = [
       ]);
     },
   },
+  {
+    id: "color",
+    subcategory: "luvut",
+    name: "Väri RGB ja heksa",
+    category: "tieto",
+    blurb: "Näytön väri kolmena tavuna ja CSS-heksana.",
+    expression: "#RRGGBB = (R, G, B), 0–255",
+    note: "Jokainen kanava on 8 bittiä eli 256 arvoa. #3A7BD5 on R=58, G=123, B=213.",
+    tags: ["väri", "rgb", "hex", "css", "color", "heksa", "kanava"],
+    seed: { mode: "hex", hex: "3A7BD5", r: "58", g: "123", b: "213" },
+    fields: (raw) => {
+      const mode = val(raw, "mode", "hex");
+      const head = selectField("mode", "Suunta", [
+        { value: "hex", label: "Heksasta RGB" },
+        { value: "rgb", label: "RGB:stä heksa" },
+      ]);
+      if (mode === "rgb") {
+        return [
+          head,
+          numField("r", "Punainen", "0–255", "58"),
+          numField("g", "Vihreä", "0–255", "123"),
+          numField("b", "Sininen", "0–255", "213"),
+        ];
+      }
+      return [head, textField("hex", "Heksa", "3A7BD5")];
+    },
+    compute: (raw) => {
+      const mode = val(raw, "mode", "hex");
+      if (mode === "rgb") {
+        const nums = readNums(raw, ["r", "g", "b"]);
+        if (failed(nums)) return nums;
+        const [r, g, b] = nums;
+        if (![r, g, b].every((n) => Number.isInteger(n) && n >= 0 && n <= 255)) return err("Kanavan pitää olla kokonaisluku 0–255.");
+        const hex = [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("").toUpperCase();
+        return ok([
+          row("hex", "CSS-heksa", `#${hex}`, undefined, true),
+          row("r", "Punainen", String(r), "0–255"),
+          row("g", "Vihreä", String(g), "0–255"),
+          row("b", "Sininen", String(b), "0–255"),
+        ]);
+      }
+      const parsed = parseCssHex(val(raw, "hex"));
+      if (!parsed) return err("Heksa on #RGB tai #RRGGBB, esimerkiksi 3A7BD5.");
+      return ok([
+        row("r", "Punainen", String(parsed.r), "0–255", true),
+        row("g", "Vihreä", String(parsed.g), "0–255"),
+        row("b", "Sininen", String(parsed.b), "0–255"),
+        row("hex", "Täysi heksa", `#${parsed.hex}`),
+      ]);
+    },
+  },
 ];
+
+function parseCssHex(raw: string): { r: number; g: number; b: number; hex: string } | null {
+  let text = raw.trim().replace(/^#/, "");
+  if (/^[0-9a-fA-F]{3}$/.test(text)) text = text.split("").map((char) => char + char).join("");
+  if (!/^[0-9a-fA-F]{6}$/.test(text)) return null;
+  return {
+    r: Number.parseInt(text.slice(0, 2), 16),
+    g: Number.parseInt(text.slice(2, 4), 16),
+    b: Number.parseInt(text.slice(4, 6), 16),
+    hex: text.toUpperCase(),
+  };
+}

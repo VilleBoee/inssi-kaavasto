@@ -1,6 +1,6 @@
 export type AngleMode = "deg" | "rad";
 
-export type ExprError = "empty" | "char" | "paren" | "end" | "name" | "args" | "div0" | "domain" | "assign" | "many" | "none" | "eq";
+export type ExprError = "empty" | "char" | "paren" | "end" | "name" | "args" | "div0" | "domain" | "assign" | "many" | "none" | "eq" | "pair";
 
 export type MathNode =
   | { t: "num"; n: number }
@@ -13,7 +13,7 @@ export type MathNode =
 export type CalcStep = MathNode;
 
 export type ExprValue =
-  | { ok: true; value: number; name?: string; steps: CalcStep[] }
+  | { ok: true; value: number; name?: string; steps: CalcStep[]; bindings?: { name: string; value: number }[] }
   | { ok: false; error: ExprError; detail?: string };
 
 type Tok = { t: "num"; n: number } | { t: "id"; s: string } | { t: "op"; s: string } | { t: "eof" };
@@ -528,7 +528,8 @@ function evaluateEquation(left: MathNode, right: MathNode, vars: Record<string, 
   const unknowns = new Set<string>();
   collectUnknowns(knownLeft, unknowns);
   collectUnknowns(knownRight, unknowns);
-  if (unknowns.size > 1) return { ok: false, error: "many" };
+  if (unknowns.size > 2) return { ok: false, error: "many" };
+  if (unknowns.size === 2) return { ok: false, error: "pair" };
   if (unknowns.size === 0) {
     const leftValue = collapse(knownLeft, angle);
     const rightValue = collapse(knownRight, angle);
@@ -788,4 +789,207 @@ function parsePlainNumber(raw: string): number | null {
   if (!/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(text)) return null;
   const value = Number(text);
   return Number.isFinite(value) ? value : null;
+}
+
+export function solveEquationPair(first: string, second: string, vars: Record<string, number>, angle: AngleMode): ExprValue | null {
+  const upper = parsedEquation(first);
+  const lower = parsedEquation(second);
+  if (!upper || !lower) return null;
+  const leftA = substitute(upper.left, vars);
+  const rightA = substitute(upper.right, vars);
+  const leftB = substitute(lower.left, vars);
+  const rightB = substitute(lower.right, vars);
+  const rowA = equationRow(leftA, rightA, angle);
+  const rowB = equationRow(leftB, rightB, angle);
+  if (!rowA || !rowB) return { ok: false, error: "none" };
+  const names: string[] = [];
+  for (const name of [...rowA.coeff.keys(), ...rowB.coeff.keys()]) {
+    if (!names.includes(name)) names.push(name);
+  }
+  if (names.length !== 2) return null;
+  const [drop, keep] = chooseDrop(rowA, rowB, names[0], names[1]);
+  const scaleA = Math.abs(coefficient(rowB, drop)) || 1;
+  const scaleB = Math.abs(coefficient(rowA, drop)) || 1;
+  const scaledA = scaleRow(rowA, scaleA);
+  const scaledB = scaleRow(rowB, scaleB);
+  const sameSign = coefficient(rowA, drop) * coefficient(rowB, drop) > 0;
+  const eliminated = sameSign ? subtractRow(scaledA, scaledB) : addRow(scaledA, scaledB);
+  const keepCoeff = coefficient(eliminated, keep);
+  if (Math.abs(coefficient(eliminated, drop)) > 1e-6) return { ok: false, error: "none" };
+  if (Math.abs(keepCoeff) < 1e-9) {
+    return Math.abs(eliminated.k) < 1e-6 ? { ok: false, error: "eq" } : { ok: false, error: "none", detail: "mismatch" };
+  }
+  const solvedKeep = tidy(eliminated.k / keepCoeff);
+  const shown = keepCoeff < 0 ? scaleRow(eliminated, -1) : eliminated;
+  const host = Math.abs(coefficient(rowB, drop)) > 1e-9 ? { left: leftB, right: rightB } : { left: leftA, right: rightA };
+  const backLeft = replaceName(host.left, keep, solvedKeep);
+  const backRight = replaceName(host.right, keep, solvedKeep);
+  const back = equationRow(backLeft, backRight, angle);
+  if (!back) return { ok: false, error: "none" };
+  const dropCoeff = coefficient(back, drop);
+  if (Math.abs(dropCoeff) < 1e-9) return { ok: false, error: "none" };
+  const solvedDrop = tidy(back.k / dropCoeff);
+  const answers = [
+    { name: keep, value: solvedKeep },
+    { name: drop, value: solvedDrop },
+  ].sort((a, b) => names.indexOf(a.name) - names.indexOf(b.name));
+  if (!fitsRow(rowA, answers) || !fitsRow(rowB, answers)) return { ok: false, error: "none" };
+
+  const steps: MathNode[] = [
+    { t: "eq", left: leftA, right: rightA },
+    { t: "eq", left: leftB, right: rightB },
+  ];
+  if (Math.abs(scaleA - 1) > 1e-9) steps.push(rowEquation(scaledA, names));
+  if (Math.abs(scaleB - 1) > 1e-9) steps.push(rowEquation(scaledB, names));
+  steps.push(rowEquation(shown, [keep]));
+  for (const step of explainEquation(variableTerm(coefficient(shown, keep), keep), { t: "num", n: tidy(shown.k) }, keep, angle, solvedKeep)) {
+    if (!sameExpr(step, steps[steps.length - 1])) steps.push(step);
+  }
+  const keepAnswer: MathNode = { t: "eq", left: { t: "sym", name: keep }, right: { t: "num", n: solvedKeep } };
+  if (!sameExpr(keepAnswer, steps[steps.length - 1])) steps.push(keepAnswer);
+  steps.push({ t: "eq", left: backLeft, right: backRight });
+  const dropShown = dropCoeff < 0 ? -dropCoeff : dropCoeff;
+  const dropConstant = tidy(dropCoeff < 0 ? -back.k : back.k);
+  for (const step of explainEquation(variableTerm(dropShown, drop), { t: "num", n: dropConstant }, drop, angle, solvedDrop)) {
+    if (!sameExpr(step, steps[steps.length - 1])) steps.push(step);
+  }
+  const dropAnswer: MathNode = { t: "eq", left: { t: "sym", name: drop }, right: { t: "num", n: solvedDrop } };
+  if (!sameExpr(dropAnswer, steps[steps.length - 1])) steps.push(dropAnswer);
+  return { ok: true, value: answers[0].value, name: answers[0].name, bindings: answers, steps };
+}
+
+function parsedEquation(input: string): { left: MathNode; right: MathNode } | null {
+  const tokens = tokenize(input.trim());
+  if (!Array.isArray(tokens)) return null;
+  const parsed = new Parser(tokens).parse();
+  if (!parsed.ok || !parsed.right) return null;
+  return { left: parsed.node, right: parsed.right };
+}
+
+type Affine = { coeff: Map<string, number>; k: number };
+
+function equationRow(left: MathNode, right: MathNode, angle: AngleMode): Affine | null {
+  const upper = affine(left, angle);
+  const lower = affine(right, angle);
+  if (!upper || !lower) return null;
+  const coeff = new Map(upper.coeff);
+  for (const [name, value] of lower.coeff) coeff.set(name, (coeff.get(name) ?? 0) - value);
+  for (const [name, value] of coeff) {
+    if (Math.abs(value) < 1e-9) coeff.delete(name);
+  }
+  return { coeff, k: tidy(lower.k - upper.k) };
+}
+
+function affine(node: MathNode, angle: AngleMode): Affine | null {
+  if (node.t === "num") return { coeff: new Map(), k: node.n };
+  if (node.t === "sym") {
+    if (isConstantName(node.name)) return { coeff: new Map(), k: canonical(node.name) === "e" ? Math.E : Math.PI };
+    return { coeff: new Map([[node.name, 1]]), k: 0 };
+  }
+  if (node.t === "neg") {
+    const inner = affine(node.expr, angle);
+    if (!inner) return null;
+    return { coeff: scaleMap(inner.coeff, -1), k: -inner.k };
+  }
+  if (node.t === "call") {
+    if ([...collectAll(node)].some((name) => !isConstantName(name))) return null;
+    const value = collapse(node, angle);
+    return value.ok && value.node.t === "num" ? { coeff: new Map(), k: value.node.n } : null;
+  }
+  if (node.t !== "bin") return null;
+  const left = affine(node.left, angle);
+  const right = affine(node.right, angle);
+  if (!left || !right) return null;
+  if (node.op === "+") return { coeff: addMap(left.coeff, right.coeff, 1), k: left.k + right.k };
+  if (node.op === "-") return { coeff: addMap(left.coeff, right.coeff, -1), k: left.k - right.k };
+  if (node.op === "*") {
+    if (left.coeff.size && right.coeff.size) return null;
+    if (!left.coeff.size && !right.coeff.size) return { coeff: new Map(), k: left.k * right.k };
+    const factor = left.coeff.size ? right.k : left.k;
+    const source = left.coeff.size ? left : right;
+    return { coeff: scaleMap(source.coeff, factor), k: source.k * factor };
+  }
+  if (node.op === "/") {
+    if (right.coeff.size || right.k === 0) return null;
+    return { coeff: scaleMap(left.coeff, 1 / right.k), k: left.k / right.k };
+  }
+  if (node.op === "^") {
+    if (left.coeff.size || right.coeff.size) return null;
+    const value = left.k ** right.k;
+    return Number.isFinite(value) ? { coeff: new Map(), k: value } : null;
+  }
+  return null;
+}
+
+function collectAll(node: MathNode, out = new Set<string>()): Set<string> {
+  if (node.t === "sym") out.add(node.name);
+  else if (node.t === "neg") collectAll(node.expr, out);
+  else if (node.t === "call") node.args.forEach((arg) => collectAll(arg, out));
+  else if (node.t !== "num") {
+    collectAll(node.left, out);
+    collectAll(node.right, out);
+  }
+  return out;
+}
+
+function addMap(left: Map<string, number>, right: Map<string, number>, sign: number): Map<string, number> {
+  const out = new Map(left);
+  for (const [name, value] of right) out.set(name, (out.get(name) ?? 0) + sign * value);
+  return out;
+}
+
+function scaleMap(source: Map<string, number>, factor: number): Map<string, number> {
+  return new Map([...source].map(([name, value]) => [name, value * factor]));
+}
+
+function coefficient(row: Affine, name: string): number {
+  return row.coeff.get(name) ?? 0;
+}
+
+function scaleRow(row: Affine, factor: number): Affine {
+  return { coeff: scaleMap(row.coeff, factor), k: row.k * factor };
+}
+
+function addRow(left: Affine, right: Affine): Affine {
+  return { coeff: addMap(left.coeff, right.coeff, 1), k: left.k + right.k };
+}
+
+function subtractRow(left: Affine, right: Affine): Affine {
+  return { coeff: addMap(left.coeff, right.coeff, -1), k: left.k - right.k };
+}
+
+function chooseDrop(left: Affine, right: Affine, first: string, second: string): [string, string] {
+  const present = [first, second].filter((name) => coefficient(left, name) !== 0 && coefficient(right, name) !== 0);
+  const pool = present.length > 0 ? present : [first, second];
+  const score = (name: string) => Math.abs(coefficient(left, name)) + Math.abs(coefficient(right, name));
+  const drop = pool.reduce((best, name) => (score(name) < score(best) ? name : best));
+  const keep = drop === first ? second : first;
+  return [drop, keep];
+}
+
+function rowEquation(row: Affine, names: string[]): MathNode {
+  return { t: "eq", left: joinTerms(names.map((name) => ({ name, coeff: coefficient(row, name) }))), right: { t: "num", n: tidy(row.k) } };
+}
+
+function joinTerms(terms: { name: string; coeff: number }[]): MathNode {
+  const present = terms.filter((term) => Math.abs(term.coeff) > 1e-9);
+  if (present.length === 0) return { t: "num", n: 0 };
+  let node = variableTerm(present[0].coeff, present[0].name);
+  for (const term of present.slice(1)) {
+    const part = variableTerm(Math.abs(term.coeff), term.name);
+    node = term.coeff < 0 ? { t: "bin", op: "-", left: node, right: part } : { t: "bin", op: "+", left: node, right: part };
+  }
+  return node;
+}
+
+function variableTerm(coeff: number, name: string): MathNode {
+  const abs = Math.abs(tidy(coeff));
+  const core: MathNode = abs === 1 ? { t: "sym", name } : { t: "bin", op: "*", left: { t: "num", n: abs }, right: { t: "sym", name }, implicit: true };
+  return coeff < 0 ? { t: "neg", expr: core } : core;
+}
+
+function fitsRow(row: Affine, answers: { name: string; value: number }[]): boolean {
+  let total = -row.k;
+  for (const answer of answers) total += coefficient(row, answer.name) * answer.value;
+  return Math.abs(total) < 1e-6 * (1 + Math.abs(row.k));
 }

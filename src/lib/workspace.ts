@@ -1,5 +1,5 @@
 import { getFormula } from "./formulas";
-import { evaluateExpr, parseDisplayNumber, validVariableName, type AngleMode, type ExprValue } from "./expr";
+import { evaluateExpr, parseDisplayNumber, solveEquationPair, validVariableName, type AngleMode, type ExprValue } from "./expr";
 
 export type { AngleMode };
 
@@ -123,13 +123,43 @@ export function lineValue(block: CalcBlock, env: Record<string, number>, angle: 
   return evaluateExpr(block.expr, env, angle);
 }
 
+export function blockResult(blocks: Block[], index: number, angle: AngleMode): ExprValue | null {
+  const block = blocks[index];
+  if (!block || block.kind !== "calc" || !block.expr.trim()) return null;
+  const env = environmentUntil(blocks, index, angle);
+  const own = evaluateExpr(block.expr, env, angle);
+  const previous = adjacentCalc(blocks, index, -1);
+  if (previous && own && !own.ok && own.error === "pair") {
+    const solved = solveEquationPair(previous.block.expr, block.expr, environmentUntil(blocks, previous.index, angle), angle);
+    if (solved) return solved;
+  }
+  if (own && !own.ok && own.error === "pair") {
+    const next = adjacentCalc(blocks, index, 1);
+    if (next && solveEquationPair(block.expr, next.block.expr, env, angle)?.ok) return { ...own, detail: "next" };
+  }
+  return own;
+}
+
+function adjacentCalc(blocks: Block[], index: number, direction: -1 | 1): { block: CalcBlock; index: number } | null {
+  for (let cursor = index + direction; cursor >= 0 && cursor < blocks.length; cursor += direction) {
+    const block = blocks[cursor];
+    if (block.kind === "note") continue;
+    if (block.kind === "calc" && block.expr.trim()) return { block, index: cursor };
+    return null;
+  }
+  return null;
+}
+
 export function environmentUntil(blocks: Block[], index: number, angle: AngleMode): Record<string, number> {
   const env: Record<string, number> = {};
   for (let i = 0; i < index; i += 1) {
     const block = blocks[i];
     if (block.kind === "calc") {
-      const result = lineValue(block, env, angle);
-      if (result?.ok && result.name && validVariableName(result.name)) env[result.name] = result.value;
+      const result = blockResult(blocks, i, angle);
+      const bindings = result?.ok ? result.bindings ?? (result.name ? [{ name: result.name, value: result.value }] : []) : [];
+      for (const binding of bindings) {
+        if (validVariableName(binding.name)) env[binding.name] = binding.value;
+      }
     }
     if (block.kind === "formula") {
       const formula = getFormula(block.formulaId);

@@ -1,11 +1,12 @@
 import type { Language } from "./types";
+import { SQL_THEORY } from "./sql-theory";
 
 const tableNote = {
   fi: "Esimerkit käyttävät taulua opiskelijat (id, nimi, op, vuosikurssi): (1, Aino, 55, 1), (2, Leevi, 120, 2), (3, Noora, 180, 3).",
   en: "Samples use the table opiskelijat (id, nimi, op, vuosikurssi): (1, Aino, 55, 1), (2, Leevi, 120, 2), (3, Noora, 180, 3).",
 };
 
-export const sql: Language = {
+const sqlLessons: Language = {
   id: "sql",
   name: "SQL",
   short: "SQL",
@@ -113,7 +114,7 @@ WHERE id = 99;`,
     },
     {
       id: "join",
-      topic: "rakenne",
+      topic: "kysely",
       title: { fi: "JOIN", en: "JOIN" },
       blurb: {
         fi: "JOIN yhdistää kaksi taulua yhteisen avaimen perusteella. INNER palauttaa vain parit, LEFT pitää vasemman taulun rivit vaikka paria ei ole.",
@@ -138,7 +139,7 @@ WHERE o.nimi = 'Aino';`,
     },
     {
       id: "group",
-      topic: "rakenne",
+      topic: "kysely",
       title: { fi: "GROUP BY", en: "GROUP BY" },
       blurb: {
         fi: "GROUP BY kokoaa rivit ryhmiksi. COUNT, SUM ja AVG laskevat ryhmän sisällä. HAVING rajaa ryhmiä, WHERE rajaa rivejä ennen ryhmitystä.",
@@ -161,7 +162,7 @@ ORDER BY vuosikurssi;`,
     },
     {
       id: "create",
-      topic: "rakenne",
+      topic: "skeema",
       title: { fi: "CREATE TABLE", en: "CREATE TABLE" },
       blurb: {
         fi: "CREATE TABLE luo rakenteen. PRIMARY KEY yksilöi rivin. NOT NULL kieltää tyhjän arvon. INTEGER PRIMARY KEY on SQLitessä usein myös juokseva tunniste.",
@@ -184,6 +185,85 @@ ORDER BY vuosikurssi;`,
         en: "The output depends on the client. SQLite prints no rows for a successful CREATE.",
       },
       tags: ["create", "table", "primary", "foreign", "schema"],
+    },
+    {
+      id: "alias",
+      topic: "kysely",
+      title: { fi: "Aliakset", en: "Aliases" },
+      blurb: {
+        fi: "AS antaa taululle tai sarakkeelle lyhyen nimen tässä kyselyssä. Se ei muuta taulua.",
+        en: "AS gives a table or a column a short name in this query. It does not change the table.",
+      },
+      points: [
+        { fi: "Taulun alias kirjoitetaan sarakkeen eteen: o.nimi.", en: "A table alias is written in front of the column: o.nimi." },
+        { fi: "WHERE ei aina näe SELECT-listan aliasta.", en: "WHERE does not always see an alias from the SELECT list." },
+      ],
+      file: "alias.sql",
+      code: `SELECT o.nimi AS opiskelija, o.op AS opintopisteet
+FROM opiskelijat AS o
+WHERE o.op >= 100;`,
+      output: `Leevi|120
+Noora|180`,
+      note: tableNote,
+      tags: ["as", "alias", "alias"],
+    },
+    {
+      id: "subquery",
+      topic: "kysely",
+      title: { fi: "Alikysely", en: "A subquery" },
+      blurb: {
+        fi: "Sulkeissa oleva SELECT laskee arvon tai listan, jota ulompi kysely käyttää.",
+        en: "A SELECT in parentheses computes a value or a list that the outer query uses.",
+      },
+      points: [
+        { fi: "Yksi arvo sopii vertailuun >. Monta arvoa sopii sanaan IN.", en: "One value fits a comparison >. Many values fit the word IN." },
+        { fi: "Sisäpuoli lasketaan ensin.", en: "The inside is computed first." },
+      ],
+      file: "alikysely.sql",
+      code: `SELECT nimi, op
+FROM opiskelijat
+WHERE op > (SELECT AVG(op) FROM opiskelijat);`,
+      output: `Noora|180`,
+      note: tableNote,
+      tags: ["subquery", "avg", "in", "alikysely"],
+    },
+    {
+      id: "nulls",
+      topic: "ohjaus",
+      title: { fi: "NULL", en: "NULL" },
+      blurb: {
+        fi: "NULL tarkoittaa puuttuvaa arvoa. Se ei ole nolla. COALESCE näyttää sijaan toisen arvon.",
+        en: "NULL means a missing value. It is not zero. COALESCE shows another value instead.",
+      },
+      points: [
+        { fi: "IS NULL on ainoa oikea tyhjyyden testi.", en: "IS NULL is the only correct test for emptiness." },
+        { fi: "COUNT(sarake) ohittaa NULL-arvot, COUNT(*) ei.", en: "COUNT(column) skips NULLs, COUNT(*) does not." },
+      ],
+      file: "null.sql",
+      code: `SELECT nimi, COALESCE(op, 0) AS op
+FROM opiskelijat
+WHERE op IS NULL;`,
+      output: `(rivit, joiden op on NULL)`,
+      note: tableNote,
+      tags: ["null", "coalesce", "is null"],
+    },
+    {
+      id: "index",
+      topic: "skeema",
+      title: { fi: "Indeksi", en: "An index" },
+      blurb: {
+        fi: "CREATE INDEX nopeuttaa hakua ja järjestystä. Se ei muuta kyselyn tulosta.",
+        en: "CREATE INDEX speeds up a search and an order. It does not change the query result.",
+      },
+      points: [
+        { fi: "PRIMARY KEY on jo indeksi.", en: "A PRIMARY KEY is already an index." },
+        { fi: "Indeksi joka sarakkeessa hidastaa kirjoitusta.", en: "An index on every column slows writing." },
+      ],
+      file: "indeksi.sql",
+      code: `CREATE INDEX idx_opiskelijat_op
+ON opiskelijat(op);`,
+      output: `(indeksi luotu)`,
+      tags: ["index", "create index", "haku", "skeema"],
     },
     {
       id: "pitfalls",
@@ -211,4 +291,12 @@ WHERE op IS NULL;`,
       tags: ["null", "bug", "virhe", "where", "having"],
     },
   ],
+};
+
+export const sql: Language = {
+  ...sqlLessons,
+  lessons: sqlLessons.lessons.map((lesson) => ({
+    ...lesson,
+    theory: SQL_THEORY[lesson.id],
+  })),
 };

@@ -2,7 +2,8 @@ import { clsx } from "clsx";
 
 type Piece =
   | { kind: "text"; value: string }
-  | { kind: "bold" | "italic" | "code" | "term"; value: string };
+  | { kind: "bold" | "italic" | "code" | "term"; value: string }
+  | { kind: "link"; label: string; id: string };
 
 export function parseRich(text: string): Piece[] {
   const pieces: Piece[] = [];
@@ -11,7 +12,13 @@ export function parseRich(text: string): Piece[] {
     if (text.startsWith("[[", i)) {
       const end = text.indexOf("]]", i + 2);
       if (end !== -1) {
-        pieces.push({ kind: "term", value: text.slice(i + 2, end) });
+        const inner = text.slice(i + 2, end);
+        const bar = inner.indexOf("|");
+        if (bar > 0) {
+          pieces.push({ kind: "link", label: inner.slice(0, bar), id: inner.slice(bar + 1).trim() });
+        } else {
+          pieces.push({ kind: "term", value: inner });
+        }
         i = end + 2;
         continue;
       }
@@ -72,6 +79,14 @@ function Inline({ text }: { text: string }) {
             <span key={index} className="font-medium text-accent">
               {piece.value}
             </span>
+          );
+        }
+        if (piece.kind === "link") {
+          if (!/^[a-z0-9-]+$/.test(piece.id)) return <span key={index}>{piece.label}</span>;
+          return (
+            <a key={index} href={`#${piece.id}`} className="font-medium text-accent underline decoration-accent/40 underline-offset-2">
+              {piece.label}
+            </a>
           );
         }
         return <span key={index}>{piece.value}</span>;
